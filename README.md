@@ -13,6 +13,10 @@ Zeile 43: mental health hat values von 0-3, hier werden alle excluded ausser 1,2
 Zeile 64: Haben wir auf Histplot geändert um multiple einzuführen damit man die Daten visuell vergleichen kann
 + die x achsen labels rotiert
 
+Im df_cleaned gibt es auch noch generelle Jugenfragen die man noch rausnehmen müsste.
+
+Wir haben jetzt schonmal ein grobes Gerüst für die feature selection geschrieben und es wäre super wenn ihr am Ende des Preprocessings einen df_clean haben könntet der ein Pandas dataframe ist mit dem Columns als eventuelle features. 
+
 
 
 
