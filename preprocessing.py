@@ -5,27 +5,72 @@ import matplotlib.pyplot as plt
 
 data=pd.read_csv('../data/NSDUH-2019.tsv', sep='\t')
 
-#Alle Fragen zu Drogenkonsum
-df_new = data.loc[:,'CIGEVER':'MMFGIVE']
+def skip99(data):
+    data=data.replace(999,99)
+    data=data.replace(9999,99)
+    data=data.replace(89,99)
+    data=data.replace(989,99)
+    data=data.replace(9989,99)
 
-#Alles inklusive Mental Health Einteilung
-df_new['Mental_health_status'] = data['MI_CAT_U'] 
-print(data['MI_CAT_U'].unique())
+    return data
 
-#Übersicht neues Dataset
-print(df_new.shape)
-print(df_new.columns)
-print(df_new.dtypes)
-print(df_new.head(10))
-print(df_new.duplicated().sum()) #duplicate rows
+def blank(data):
+    df_cleaned=data.replace(998,98)
+    df_cleaned=data.replace(9998,98)
 
-#Alle Zeilen löschen in denen nur 640 Fragen oder weniger beantwortet wurden
-count_skip=df_new.eq(99).sum(axis=1) #blank?, refused?, dont know?
-df_cleaned = df_new[count_skip <= 640] #der count bezieht sich auf wie viele nicht beantwortet wurden (mit 99 im dataset gekennzeichnet), also je kleiner desto besser
+    num_rows_with_98 = (df_cleaned == 98).any(axis=1).sum()
 
-#Alle Zeilen löschen mit NA in Mental Health !!wie viele? brauchen wir auch zum argumentieren für die Arbeit!!
-df_cleaned = df_new.dropna(subset=['Mental_health_status'])
-print(len(df_new)-len(df_cleaned)) #habt ihr euch hier angeschaut was wir löschen? Ob man hier evtl eine andere strategie anwenden könnte
+    for col in df_cleaned.columns:
+        if (df_cleaned[col] == 98).sum() > 22000:  
+            del df_cleaned[col]
+    
+    return df_cleaned
+
+def clean_data(data):
+    
+    #Alle Fragen zu Drogenkonsum
+    df_new = data.loc[:,'CIGEVER':'NDTRNMIMPT']
+    df_new=pd.merge(df_new, data.loc[:,'CADRLAST':'MMFGIVE'],how='left', on='QUESTID2')
+
+    #Alles inklusive Mental Health Einteilung
+    df_new['Mental_health_status'] = data['MI_CAT_U'] 
+
+    #Übersicht neues Dataset
+    print('Shape of dataset: ',df_new.shape)
+    print('++++Columns Index++++')
+    print(df_new.columns)
+    print('++++Datentypen++++')
+    print(df_new.dtypes)
+    print('+++++Head of Dataset+++++')
+    print(df_new.head(10))
+    print('Number of duplicated rows:',df_new.duplicated().sum()) #duplicate rows
+
+    #Alle Zeilen löschen mit NA in Mental Health !!wie viele? brauchen wir auch zum argumentieren für die Arbeit!!
+    df_cleaned = df_new.dropna(subset=['Mental_health_status'])
+    print('Number of deleted rows:', len(df_new)-len(df_cleaned))
+
+    missing_values_per_column = df_cleaned.isna().sum().sort_values(ascending=False)
+    print('++++Number of missing values per Column++++')
+    print(missing_values_per_column)
+
+    num_columns_not_zero = sum([1 for value in missing_values_per_column if value > 0])
+    print("Number of columns with missing values:", num_columns_not_zero) #100 von 1756 Spalten enthalten leere Zeilen 
+    df_cleaned=df_cleaned.dropna(axis=1) #Drop alle Spalten, in denen Werte fehlen
+    
+    print('Are there still missing values:', df_cleaned.isna().any().any()) 
+    
+    #alle Spalten löschen die mehr als  2/3 Blank angaben haben
+    df_cleaned=blank(df_cleaned)
+    #allen skip angaben die Nummer 99 zuordnern
+    df_cleaned=skip99(df_cleaned)
+    
+    print('+++++Shape finales Dataset+++++')
+    print(df_cleaned.shape) #(42739, 1632) verbliebenes Dataset davor (56136, 1756): 13397 rows and 124 columns deleted
+
+    return df_cleaned
+
+df_cleaned=clean_data(data)
+
 #Visualisieren
 #Ob jemals Drogen konsumiert wurden bzw. Abhänigkeit von Drogen
 drug_data=df_cleaned[['CIGEVER','ALCEVER','MJEVER','COCEVER','CRKEVER','HEREVER','HALLUCEVR','INHALEVER','METHAMEVR','PNRANYLIF','TRQANYLIF','STMANYLIF','SEDANYLIF','PNRNMLIF','TRQNMLIF','STMNMLIF','SEDNMLIF']]
