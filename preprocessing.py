@@ -71,18 +71,33 @@ def clean_data(data):
 
 df_cleaned=clean_data(data)
 
+def replace_data(data_name):
+    data_name['HALLUCEVR']=data_name['HALLUCEVR'].replace(91,2)
+    data_name['INHALEVER']=data_name['INHALEVER'].replace(91,2)
+    data_name['CRKEVER']=data_name['CRKEVER'].replace(91,2)
+    data_name['PNRANYLIF']=data_name['PNRANYLIF'].replace(5,1)
+    data_name['TRQANYLIF']=data_name['TRQANYLIF'].replace(5,1)
+    data_name['STMANYLIF']=data_name['STMANYLIF'].replace(5,1)
+    data_name['SEDANYLIF']=data_name['SEDANYLIF'].replace(5,1)
+    data_name['PNRNMLIF']=data_name['PNRNMLIF'].replace(5,1)
+    data_name['TRQNMLIF']=data_name['TRQNMLIFF'].replace(5,1)
+    data_name['STMNMLIF']=data_name['STMNMLIF'].replace(5,1)
+    data_name['SEDNMLIF']=data_name['SEDNMLIF'].replace(5,1)
+    data_name['PNRNMLIF']=data_name['PNRNMLIF'].replace(91,2)
+    data_name['TRQNMLIF']=data_name['TRQNMLIFF'].replace(91,2)
+    data_name['STMNMLIF']=data_name['STMNMLIF'].replace(91,2)
+    data_name['SEDNMLIF']=data_name['SEDNMLIF'].replace(91,2)
+    
 #Visualisieren
 #Ob jemals Drogen konsumiert wurden bzw. Abhänigkeit von Drogen
 drug_data=df_cleaned[['CIGEVER','ALCEVER','MJEVER','COCEVER','CRKEVER','HEREVER','HALLUCEVR','INHALEVER','METHAMEVR','PNRANYLIF','TRQANYLIF','STMANYLIF','SEDANYLIF','PNRNMLIF','TRQNMLIF','STMNMLIF','SEDNMLIF']]
-drug_data['HALLUCEVR']=drug_data['HALLUCEVR'].replace(91,2)
-drug_data['INHALEVER']=drug_data['INHALEVER'].replace(91,2)
+replace_data(drug_data)
 drug_data_with_ment = df_cleaned[['CIGEVER','ALCEVER','MJEVER','COCEVER','CRKEVER','HEREVER','HALLUCEVR','INHALEVER','METHAMEVR','PNRANYLIF','TRQANYLIF','STMANYLIF','SEDANYLIF','PNRNMLIF','TRQNMLIF','STMNMLIF','SEDNMLIF','Mental_health_status']]
-drug_data_with_ment['HALLUCEVR']=drug_data_with_ment['HALLUCEVR'].replace(91,2)
-drug_data_with_ment['INHALEVER']=drug_data_with_ment['INHALEVER'].replace(91,2) #wieso nur hier???
+replace_data(drug_data_with_ment) 
 
 melted_drug_data=drug_data.melt(var_name='Column', value_name='Value')
 print(len(melted_drug_data))
-filtered_drug_data=melted_drug_data[melted_drug_data['Value'].isin([1,2])] #sehr viel geht hier verloren z.B. Sednmilf hat es auch 91 was never used bedeutet
+filtered_drug_data=melted_drug_data[melted_drug_data['Value'].isin([1,2])]
 
 melted_drug_data_with_ment=drug_data_with_ment.melt(var_name='Column', value_name='Value')
 filtered_drug_data_with_ment=melted_drug_data_with_ment[melted_drug_data_with_ment['Value'].isin([1,2])] #wo bleibt der rest? mental health hat 1-4
