@@ -98,13 +98,12 @@ replace_data(drug_data_with_ment)
 melted_drug_data=drug_data.melt(var_name='Column', value_name='Value')
 print(len(melted_drug_data))
 filtered_drug_data=melted_drug_data[melted_drug_data['Value'].isin([1,2])]
-
-melted_drug_data_with_ment=drug_data_with_ment.melt(var_name='Column', value_name='Value')
-filtered_drug_data_with_ment=melted_drug_data_with_ment[melted_drug_data_with_ment['Value'].isin([1,2])] #wo bleibt der rest? mental health hat 1-4
 print(len(filtered_drug_data))
+
 drug_dependet=data[['DNICNSP', 'DEPNDALC', 'DEPNDMRJ', 'DEPNDCOC', 'DEPNDHER', 'DEPNDPYHAL','DEPNDPYINH','DEPNDPYMTH', 'DEPNDPYPNR','DEPNDPYTRQ','DEPNDPYSTM','DEPNDPYSED', 'DEPNDPYPSY']]
+drug_dependet=drug_dependet.replace(0,2)
 melted_drug_depended=drug_dependet.melt(var_name='Column', value_name='Value')
-filtered_drug_depended= melted_drug_depended[melted_drug_depended['Value'].isin([1,2])] #exclude other values that are not 1 or 2
+filtered_drug_depended= melted_drug_depended[melted_drug_depended['Value'].isin([1,2])]
 
 list_mean_mental_health_yes = []
 list_mean_mental_health_no = []
