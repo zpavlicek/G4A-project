@@ -3,9 +3,10 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import scipy.stats as sts
-from sklearn.feature_selection import mutual_info_classif
+from sklearn.feature_selection import mutual_info_classif, SelectKBest
+from sklearn.model_selection import StratifiedKFold, train_test_split
 import warnings
-from sklearn.metrics import mutual_info_score
+from sklearn.metrics import mutual_info_score #brauchen wir nicht mehr
 
 
 warnings.filterwarnings("ignore")
@@ -195,7 +196,7 @@ def chisquare(df, values, label):
         table=contingencytable(df[label], df[var])
         #print(table)
         stats=[sts.chi2_contingency(table).pvalue, sts.chi2_contingency(table).statistic]
-        d[var]=stats
+        d[var]=stats #dictionary with p-value, statistic
     return d
 def featureanalysis(d):
     SignificantFeatures=[]
@@ -204,48 +205,114 @@ def featureanalysis(d):
             SignificantFeatures.append(key)
     return SignificantFeatures
 
+#################################### Calculation of Mutual Information ###################################################
 def mutualinfo(values, label):
     mutualinfoscore=mutual_info_classif(values,label, discrete_features=True, random_state=42)
-    d=dict(zip(values.columns, mutualinfoscore))
+    #d=dict(zip(values.columns, mutualinfoscore))
+    return mutualinfoscore
+
+#hab was ausprobiert geht aber ewig und macht eig das selbe
+def select_features(X_train, y_train, X_test):
+    fs = SelectKBest(score_func=mutual_info_classif, k=15) # auch methode um mutual info zu berechnen dauert nur 5 min
+    fs.fit(X_train, y_train)
+    X_train_fs = fs.transform(X_train)
+    X_test_fs = fs.transform(X_test)
+    return X_train_fs, X_test_fs, fs
+def sorted_features(fs, values):
+    d = {}
+    for var in values:
+        d[var]=fs.scores_
     return d
-    
 
+################################### feature selection based on common sense ##############################################
 counter=0
-#feature selection based on common sense
-
 for var in df_cleaned.columns:
     if len(df_cleaned[var].unique())<2:
         del df_cleaned[var]
         counter+=1
 print(counter, "columns lost their meaning because of the deletion of rows with NANs in Mental health status")
+
 counter=0
 
-
-#feature selection based on statistics
+################################### feature selection based on statistics ################################################
 X  = df_cleaned.copy().drop('Mental_health_status', axis = 1)
 Y  = df_cleaned['Mental_health_status']
-SignificanceLevel=0.05
-#
-valuesofinterest=X.columns
-#dictionary with p-value, statistic
-chi2=chisquare(df_cleaned, valuesofinterest, 'Mental_health_status')
-relevfeatures=featureanalysis(chi2)
 
-mutifo=mutualinfo(X, Y)
-multiinfsorted=dict(sorted(mutifo.items(), key=lambda x:x[1]))
-multkey=list(multiinfsorted.keys())[:20]
-multval=list(multiinfsorted.values())[:20]
+SignificanceLevel=0.05 # brauchts dann auch nich mehr wegen chisquare
+valuesofinterest=X.columns # mit split nicht mehr gebraucht
+
+################################### Splitting in Test and Train Set ######################################################
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=1) # split bei so grossem dataset gebraucht (siehe lesezeichen chrome)
+
+################################### Cross Validation ######################################################
+#hab ich von HW5 übernommen und auf unseres überführt
+n_splits = 10 #bei so grossem dataset sollte man mehr splits verwenden um overfitting und bias zu vermeiden
+skf      = StratifiedKFold(n_splits=n_splits, shuffle = True, random_state=1)
+
+mutinfolist = []
+fold = 0
+for train_i, test_i in skf.split(X,Y):
+    X_train, X_test = X.iloc[train_i], X.iloc[test_i]
+    y_train, y_test = Y.iloc[train_i], Y.iloc[test_i]
+    mutinfo=mutualinfo(X_train, y_train)
+    mutinfolist.append(mutinfo) # liste wo mutual info gespreichert wird
+    fold += 1
+
+
+mutinfomatrix = np.array(mutinfolist) #macht nen numpy array draus
+
+std = []
+for i in range(len(mutinfomatrix[1])): #berechnung standardabweichung über folds
+    std.append(np.std(mutinfomatrix[:, i]))
+
+average_mutinfo = np.mean(mutinfomatrix, axis=0) #mean über folds
+feature_importance_df = pd.DataFrame({ #dataframe zum benutzen für sorting und plot
+    'Feature': X_train.columns,
+    'Average Coefficient': average_mutinfo,
+    'Error': std
+})
+
+#das was ich ausprobiert hab und ewig geht, können wa sonst auch wieder löschen
+"""X_train_fs, X_test_fs, fs = select_features(X_train, y_train, X_test)
+
+d_sorted = dict(sorted(d.items(), key=lambda item: item[1]))
+sorted = sorted_features(fs, valuesofinterest)
+top_15 = list(sorted.items())[:15]
+for i in range(len(top_15)):
+    print('Feature %d: %f' % (i, top_15[i]))"""
+
+#ChiSquare implementation: ist müll weil dataset viel zu gross
+"""chi2=chisquare(df_cleaned, valuesofinterest, 'Mental_health_status')
+relevfeatures=featureanalysis(chi2)"""
+
+#sortieren von values in absteigend reihenfolge
+feature_importance_df.sort_values(by='Average Coefficient', ascending=False, inplace=True) #value sort
+feature_importance_df_top = feature_importance_df.head(20) #top 20 features
+
+#sortierung mit dictionary (is ohne folds, können wa wenn wir lieber das benutzen möchten anpassen)
+"""multiinfsorted=dict(sorted(mutinfo.items(), key=lambda x:x[1], reverse=True))
+multkey=list(multiinfsorted.keys())[:30]
+multval=list(multiinfsorted.values())[:30]"""
+
+#plot mit dataframe erstellt
 plt.close()
 figure = plt.barh(
+    feature_importance_df_top['Feature'], 
+    feature_importance_df_top['Average Coefficient'], 
+    xerr = feature_importance_df_top['Error']
+    )
+
+#plot mit dictionary erstellt
+"""figure = plt.barh(
     multkey,
     multval, 
     color='maroon',
     height=0.3,
-)
+)"""
 
-plt.xlabel("Top features")
-plt.ylabel("Feature importance")
-plt.title("Feature importance of top 15 features normalized across 5 folds")
+plt.xlabel("Averaged Mutual Information")
+plt.ylabel("Top features")
+plt.title("Feature importance of top 20 features normalized across 10 folds")
 plt.tight_layout()
 plt.savefig('../output/importance.png')
 print('Fertig')
