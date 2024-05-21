@@ -182,21 +182,17 @@ plt.close()
 Feature Selection
 **************************************************************************************************************************************
 '''
+#################################### CHI2 Test ###################################################
 #chi test geht nicht wegen enormer sample size --> gibt unglaublich kleine p-values
 def contingencytable(effect, intervention):
     global counter
     counter+=1
     contab=pd.crosstab(intervention, effect)
-    """
-    if counter<=15:
-        print(contab)
-    """
     return contab
 def chisquare(df, values, label):
     d={}
     for var in values:
         table=contingencytable(df[label], df[var])
-        #print(table)
         stats=[sts.chi2_contingency(table).pvalue, sts.chi2_contingency(table).statistic]
         d[var]=stats #dictionary with p-value, statistic
     return d
@@ -212,7 +208,7 @@ def mutualinfo(values, label):
     mutualinfoscore=mutual_info_classif(values,label, discrete_features=True, random_state=42)
     #d=dict(zip(values.columns, mutualinfoscore))
     return mutualinfoscore
-
+'''
 #hab was ausprobiert geht aber ewig und macht eig das selbe
 def select_features(X_train, y_train, X_test):
     fs = SelectKBest(score_func=mutual_info_classif, k=15) # auch methode um mutual info zu berechnen dauert nur 5 min
@@ -226,6 +222,7 @@ def sorted_features(fs, values):
     for var in values:
         d[var]=fs.scores_
     return d
+'''
 
 ################################### feature selection based on common sense ##############################################
 counter=0
@@ -235,7 +232,6 @@ for var in df_cleaned.columns:
         counter+=1
 print(counter, "columns lost their meaning because of the deletion of rows with NANs in Mental health status")
 
-counter=0
 """
 #split age in groups 
 def split_age_groups(drug, df_cleaned):
@@ -294,22 +290,22 @@ df_cleaned.loc[df_cleaned['CRKUS30A'] < 31, 'CRKUS30A'] = 1 #changed in consumed
 """
 
 
-
-
 ################################### feature selection based on statistics ################################################
 X  = df_cleaned.loc[:,'IRCIGRC':'SRCCLFRSTM']
 Y  = df_cleaned['Mental_health_status']
 
 SignificanceLevel=0.05 # brauchts dann auch nich mehr wegen chisquare
 #valuesofinterest=X.columns # mit split nicht mehr gebraucht
-
+#ChiSquare implementation: ist müll weil dataset viel zu gross
+#chi2=chisquare(df_cleaned, valuesofinterest, 'Mental_health_status')
+#relevfeatures=featureanalysis(chi2)
 ################################### Splitting in Test and Train Set ######################################################
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=1) # split bei so grossem dataset gebraucht (siehe lesezeichen chrome) #was macht random state hier? wieder 42? checke leider nicht was die zahl genau macht
 
 ################################### Cross Validation ######################################################
 #hab ich von HW5 übernommen und auf unseres überführt
 n_splits = 10 #bei so grossem dataset sollte man mehr splits verwenden um overfitting und bias zu vermeiden
-skf      = StratifiedKFold(n_splits=n_splits, shuffle = True, random_state=1) #42?
+skf      = StratifiedKFold(n_splits=n_splits, shuffle = True, random_state=0)
 
 mutinfolist = []
 for train_i, test_i in skf.split(X,Y):
@@ -320,13 +316,13 @@ for train_i, test_i in skf.split(X,Y):
 
 
 mutinfomatrix = np.array(mutinfolist) #macht nen numpy array draus
-print(mutinfomatrix)
-
-std = []
+std = np.std(mutinformatrix, axis=0) #berechnung standardabweichung über folds
+average_mutinfo = np.mean(mutinfomatrix, axis=0) #mean über folds
+'''
 for i in range(len(mutinfomatrix[1])): #berechnung standardabweichung über folds
     std.append(np.std(mutinfomatrix[:, i]))
+'''
 
-average_mutinfo = np.mean(mutinfomatrix, axis=0) #mean über folds
 feature_importance_df = pd.DataFrame({ #dataframe zum benutzen für sorting und plot
     'Feature': X_train.columns,
     'Average Coefficient': average_mutinfo,
@@ -342,13 +338,12 @@ top_15 = list(sorted.items())[:15]
 for i in range(len(top_15)):
     print('Feature %d: %f' % (i, top_15[i]))"""
 
-#ChiSquare implementation: ist müll weil dataset viel zu gross
-"""chi2=chisquare(df_cleaned, valuesofinterest, 'Mental_health_status')
-relevfeatures=featureanalysis(chi2)"""
+
 
 #sortieren von values in absteigend reihenfolge
 feature_importance_df.sort_values(by='Average Coefficient', ascending=False, inplace=True) #value sort
-feature_importance_df_top = feature_importance_df.head(30) #top 20 features
+feature_importance_df_top = feature_importance_df.head(20) #top 20 features
+'''
 feature_coeff_list=list(feature_importance_df['Average Coefficient'])
 diff=0
 index=0
@@ -375,6 +370,7 @@ for i in range(3, len(feature_coeff_list)):
         foind=i
 
 print(diff, secdiff, tridiff, fodiff, index, secind, triind, foind)
+'''
 
     
 
@@ -391,14 +387,6 @@ figure = plt.barh(
     feature_importance_df_top['Average Coefficient'], 
     xerr = feature_importance_df_top['Error']
     )
-
-#plot mit dictionary erstellt
-"""figure = plt.barh(
-    multkey,
-    multval, 
-    color='maroon',
-    height=0.3,
-)"""
 
 plt.xlabel("Averaged Mutual Information")
 plt.ylabel("Top features")
