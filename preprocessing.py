@@ -11,6 +11,8 @@ from sklearn.metrics import mutual_info_score #brauchen wir nicht mehr
 
 warnings.filterwarnings("ignore")
 
+#teilweise hat nans die bedeuten die leute nehmen keine drogen... können wir also doch nicht löschen zB SRCPNRNM2 gibt noch viele dort ZB PNRMAINRSN
+#beispiel statt replace df_cleaned.loc[df_cleaned['ALBSTWAY'] == 11, 'ALBSTWAY'] = 1
 def skip99(data):
     data=data.replace(999,99)
     data=data.replace(9999,99)
@@ -65,8 +67,8 @@ def clean_data(data):
 
     num_columns_not_zero = sum([1 for value in missing_values_per_column if value > 0])
     print("Number of columns with missing values:", num_columns_not_zero) #100 von 1756 Spalten enthalten leere Zeilen 
-    df_cleaned=df_cleaned.dropna(axis=1) #Drop alle Spalten, in denen Werte fehlen
-    #macht das sinn? wird hier auch die spalte gedropped wenn nur ein value fehlt macht dann nicht reihe mehr sinn
+    #df_cleaned=df_cleaned.dropna(axis=1) #Drop alle Spalten, in denen Werte fehlen
+    df_cleaned= df_cleaned.fillna(0)
     
     print('Are there still missing values:', df_cleaned.isna().any().any()) 
     
@@ -218,6 +220,7 @@ def select_features(X_train, y_train, X_test):
     X_train_fs = fs.transform(X_train)
     X_test_fs = fs.transform(X_test)
     return X_train_fs, X_test_fs, fs
+
 def sorted_features(fs, values):
     d = {}
     for var in values:
@@ -233,33 +236,91 @@ for var in df_cleaned.columns:
 print(counter, "columns lost their meaning because of the deletion of rows with NANs in Mental health status")
 
 counter=0
+"""
+#split age in groups 
+def split_age_groups(drug, df_cleaned):
+    df_cleaned.loc[df_cleaned[drug] <= 21, drug] = 1
+    df_cleaned.loc[(21<= df_cleaned[drug])&(df_cleaned[drug] <= 50), drug] = 2
+    df_cleaned.loc[df_cleaned[drug] >50, drug] = 3
+    return df_cleaned
+
+#Age/Year/Month when first smoked a cigarette --> redundant data with cigever
+df_cleaned=split_age_groups('CIGTRY', df_cleaned)
+df_cleaned.drop(['CIGYFU', 'CIGMFU'], axis=1)
+#CIGREC is redundant due to CIG30USE and CG30ST due to CIG30AV and CIG30BR2 due to CIG30TPE ...
+df_cleaned.drop(['CIGREC', 'CG30EST','CIGAGE','CIGDLYFU','CIGDLMFU','SMKLSSYFU','SMKLSSMFU', 'SMKLSSREC', 'SMKLSS30N', 'CIGARYFU', 'CIGARMFU', 'CIGARREC', 'CGR30USE'], axis=1)
+df_cleaned=split_age_groups('CIGARTRY', df_cleaned)
+df_cleaned=split_age_groups('SMKLSSTRY', df_cleaned)
+#Alcohol
+df_cleaned=split_age_groups('ALCTRY', df_cleaned)
+df_cleaned.drop(['ALCYFU', 'ALCMFU', 'ALCYRTOT'], axis=1)
+#ALBSTWAY feature engineering
+df_cleaned.loc[df_cleaned['ALBSTWAY'] == 11, 'ALBSTWAY'] = 1
+df_cleaned.loc[df_cleaned['ALBSTWAY'] == 12, 'ALBSTWAY'] = 2
+df_cleaned.loc[df_cleaned['ALBSTWAY'] == 13, 'ALBSTWAY'] = 3
+print(df_cleaned['ALBSTWAY'].unique())
+df_cleaned.drop(df_cleaned.loc[:,'ALDAYPYR':'ALCUS30D'].columns, axis=1)
+#ALCBNG30D feature engineering in Are there days with 5 drinks or more in the past 30 days
+df_cleaned.loc[df_cleaned['ALCBNG30D'] < 31, 'ALCBNG30D'] = 1
+df_cleaned.loc[df_cleaned['ALCBNG30D'] == 80, 'ALCBNG30D'] = 2
+#Marijuana
+df_cleaned=split_age_groups('MJAGE', df_cleaned)
+df_cleaned.drop(df_cleaned.loc[:,'MJYFU':'MJMFU'].columns, axis=1)
+df_cleaned.drop(df_cleaned.loc[:,'MJYRTOT':'MJFQFLG'].columns, axis=1)
+df_cleaned.loc[df_cleaned['MRBSTWAY'] == 11, 'MRBSTWAY'] = 1
+df_cleaned.loc[df_cleaned['MRBSTWAY'] == 12, 'MRBSTWAY'] = 2
+df_cleaned.loc[df_cleaned['MRBSTWAY'] == 13, 'MRBSTWAY'] = 3
+df_cleaned.drop(df_cleaned.loc[:,'MRDAYPYR':'MJDAY30A'].columns, axis=1)
+#Cocaine
+df_cleaned=split_age_groups('COCAGE', df_cleaned)
+df_cleaned.drop(df_cleaned.loc['COCYFU':'CCFQFLG'].columns, axis=1)
+df_cleaned.loc[df_cleaned['CCBSTWAY'] == 11, 'CCBSTWAY'] = 1
+df_cleaned.loc[df_cleaned['CCBSTWAY'] == 12, 'CCBSTWAY'] = 2
+df_cleaned.loc[df_cleaned['CCBSTWAY'] == 13, 'CCBSTWAY'] = 3
+df_cleaned.loc[df_cleaned['CCBSTWAY'] == 21, 'CCBSTWAY'] = 1
+df_cleaned.loc[df_cleaned['CCBSTWAY'] == 22, 'CCBSTWAY'] = 2
+df_cleaned.loc[df_cleaned['CCBSTWAY'] == 23, 'CCBSTWAY'] = 3
+df_cleaned.drop(df_cleaned.loc['CCDAYPYR':'CCDAYPWK'].columns, axis=1)
+
+df_cleaned.loc[df_cleaned['COCUS30A'] < 31, 'COCUS30A'] = 1 #COCUS30A changed in consumed in last 30 days
+
+df_cleaned.drop('CC30EST')
+#Crack
+df_cleaned=split_age_groups('CRKAGE', df_cleaned)
+df_cleaned.drop(df_cleaned.loc['CRKYFU':'CRKMFU'].columns, axis=1)
+df_cleaned.drop(df_cleaned.loc['CRKYRTOT':'CRFQFLG'].columns, axis=1)
+df_cleaned.drop(df_cleaned['CRDAYPYR':'CRDAYPWK'].columns, axis=1)
+df_cleaned.loc[df_cleaned['CRKUS30A'] < 31, 'CRKUS30A'] = 1 #changed in consumed in last 30 days
+"""
+
+
+
 
 ################################### feature selection based on statistics ################################################
-X  = df_cleaned.copy().drop('Mental_health_status', axis = 1)
+X  = df_cleaned.loc[:,'IRCIGRC':'SRCCLFRSTM']
 Y  = df_cleaned['Mental_health_status']
 
 SignificanceLevel=0.05 # brauchts dann auch nich mehr wegen chisquare
-valuesofinterest=X.columns # mit split nicht mehr gebraucht
+#valuesofinterest=X.columns # mit split nicht mehr gebraucht
 
 ################################### Splitting in Test and Train Set ######################################################
-X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=1) # split bei so grossem dataset gebraucht (siehe lesezeichen chrome)
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=1) # split bei so grossem dataset gebraucht (siehe lesezeichen chrome) #was macht random state hier? wieder 42? checke leider nicht was die zahl genau macht
 
 ################################### Cross Validation ######################################################
 #hab ich von HW5 übernommen und auf unseres überführt
 n_splits = 10 #bei so grossem dataset sollte man mehr splits verwenden um overfitting und bias zu vermeiden
-skf      = StratifiedKFold(n_splits=n_splits, shuffle = True, random_state=1)
+skf      = StratifiedKFold(n_splits=n_splits, shuffle = True, random_state=1) #42?
 
 mutinfolist = []
-fold = 0
 for train_i, test_i in skf.split(X,Y):
     X_train, X_test = X.iloc[train_i], X.iloc[test_i]
     y_train, y_test = Y.iloc[train_i], Y.iloc[test_i]
     mutinfo=mutualinfo(X_train, y_train)
     mutinfolist.append(mutinfo) # liste wo mutual info gespreichert wird
-    fold += 1
 
 
 mutinfomatrix = np.array(mutinfolist) #macht nen numpy array draus
+print(mutinfomatrix)
 
 std = []
 for i in range(len(mutinfomatrix[1])): #berechnung standardabweichung über folds
@@ -287,7 +348,36 @@ relevfeatures=featureanalysis(chi2)"""
 
 #sortieren von values in absteigend reihenfolge
 feature_importance_df.sort_values(by='Average Coefficient', ascending=False, inplace=True) #value sort
-feature_importance_df_top = feature_importance_df.head(20) #top 20 features
+feature_importance_df_top = feature_importance_df.head(30) #top 20 features
+feature_coeff_list=list(feature_importance_df['Average Coefficient'])
+diff=0
+index=0
+secdiff=0
+tridiff=0
+fodiff=0
+foind=0
+
+for i in range(3, len(feature_coeff_list)):
+    mdiff=feature_coeff_list[i-1]-feature_coeff_list[i]
+    if mdiff>diff:
+        secdiff=diff
+        diff=mdiff
+        index=i
+    elif mdiff>secdiff:
+        tridiff=secdiff
+        secdiff=mdiff
+        secind=i
+    elif mdiff>tridiff:
+        tridiff=mdiff
+        triind=i
+    elif mdiff>fodiff:
+        fodiff=mdiff
+        foind=i
+
+print(diff, secdiff, tridiff, fodiff, index, secind, triind, foind)
+
+    
+
 
 #sortierung mit dictionary (is ohne folds, können wa wenn wir lieber das benutzen möchten anpassen)
 """multiinfsorted=dict(sorted(mutinfo.items(), key=lambda x:x[1], reverse=True))
@@ -315,4 +405,6 @@ plt.ylabel("Top features")
 plt.title("Feature importance of top 20 features normalized across 10 folds")
 plt.tight_layout()
 plt.savefig('../output/importance.png')
+
+
 print('Fertig')
