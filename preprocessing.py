@@ -163,7 +163,7 @@ category_mapping = {
 }
 
 fig2= sns.countplot(data=df_cleaned, x='Mental_health_status')
-fig2.set_xticklabels([category_mapping[float(label.get_text())] for label in fig3.get_xticklabels()])
+fig2.set_xticklabels([category_mapping[float(label.get_text())] for label in fig2.get_xticklabels()])
 plt.xlabel('Mental Health Status')
 plt.ylabel('Number of people')
 plt.tight_layout()
