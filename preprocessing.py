@@ -5,13 +5,12 @@ import matplotlib.pyplot as plt
 import scipy.stats as sts
 from sklearn.feature_selection import mutual_info_classif, SelectKBest
 from sklearn.model_selection import StratifiedKFold, train_test_split
-import warnings
-from sklearn.metrics import mutual_info_score #brauchen wir nicht mehr
 from imblearn.over_sampling import RandomOverSampler, SMOTE
 from imblearn.under_sampling import RandomUnderSampler 
 from imblearn.combine import SMOTETomek
 from imblearn.under_sampling import TomekLinks
 #ihr müsst evt. noch imblearn runterladen (pip install imbalanced-learn)
+import warnings
 
 
 warnings.filterwarnings("ignore")
@@ -201,7 +200,7 @@ def chisquare(df, values, label):
         stats=[sts.chi2_contingency(table).pvalue, sts.chi2_contingency(table).statistic]
         d[var]=stats #dictionary with p-value, statistic
     return d
-def featureanalysis(d):
+def featureanalysischi(d):
     SignificantFeatures=[]
     for key, value in d.items():
         if value[0]<SignificanceLevel:
@@ -211,23 +210,8 @@ def featureanalysis(d):
 #################################### Calculation of Mutual Information ###################################################
 def mutualinfo(values, label):
     mutualinfoscore=mutual_info_classif(values,label, discrete_features=True, random_state=42)
-    #d=dict(zip(values.columns, mutualinfoscore))
     return mutualinfoscore
-'''
-#hab was ausprobiert geht aber ewig und macht eig das selbe
-def select_features(X_train, y_train, X_test):
-    fs = SelectKBest(score_func=mutual_info_classif, k=15) # auch methode um mutual info zu berechnen dauert nur 5 min
-    fs.fit(X_train, y_train)
-    X_train_fs = fs.transform(X_train)
-    X_test_fs = fs.transform(X_test)
-    return X_train_fs, X_test_fs, fs
 
-def sorted_features(fs, values):
-    d = {}
-    for var in values:
-        d[var]=fs.scores_
-    return d
-'''
 
 ################################### feature selection based on common sense ##############################################
 counter=0
@@ -299,11 +283,12 @@ df_cleaned.loc[df_cleaned['CRKUS30A'] < 31, 'CRKUS30A'] = 1 #changed in consumed
 X  = df_cleaned.loc[:,'IRCIGRC':'SRCCLFRSTM']
 Y  = df_cleaned['Mental_health_status']
 
-SignificanceLevel=0.05 # brauchts dann auch nich mehr wegen chisquare
-#valuesofinterest=X.columns # mit split nicht mehr gebraucht
-#ChiSquare implementation: ist müll weil dataset viel zu gross
-#chi2=chisquare(df_cleaned, valuesofinterest, 'Mental_health_status')
-#relevfeatures=featureanalysis(chi2)
+''' CHI IMPLEMENTATION
+SignificanceLevel=0.05 
+valuesofinterest=X.columns 
+chi2=chisquare(df_cleaned, valuesofinterest, 'Mental_health_status')
+relevfeatures=featureanalysischi(chi2)
+'''
 ################################### Splitting in Test and Train Set ######################################################
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=1) # split bei so grossem dataset gebraucht (siehe lesezeichen chrome) #was macht random state hier? wieder 42? checke leider nicht was die zahl genau macht
 
@@ -316,21 +301,18 @@ mutinfolist = []
 for train_i, test_i in skf.split(X,Y):
     X_train, X_test = X.iloc[train_i], X.iloc[test_i]
     y_train, y_test = Y.iloc[train_i], Y.iloc[test_i]
+    
     mutinfo=mutualinfo(X_train, y_train)
-    mutinfolist.append(mutinfo) # liste wo mutual info gespreichert wird
+    mutinfolist.append(mutinfo) 
 
 
-mutinfomatrix = np.array(mutinfolist) #macht nen numpy array draus
+mutinfomatrix = np.array(mutinfolist) 
 std = np.std(mutinformatrix, axis=0) #berechnung standardabweichung über folds
 average_mutinfo = np.mean(mutinfomatrix, axis=0) #mean über folds
-'''
-for i in range(len(mutinfomatrix[1])): #berechnung standardabweichung über folds
-    std.append(np.std(mutinfomatrix[:, i]))
-'''
 
-feature_importance_df = pd.DataFrame({ #dataframe zum benutzen für sorting und plot
+feature_importance_df = pd.DataFrame({ 
     'Feature': X_train.columns,
-    'Average Coefficient': average_mutinfo,
+    'Average Mutual Information': average_mutinfo,
     'Error': std
 })
 
