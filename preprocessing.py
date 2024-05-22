@@ -40,16 +40,52 @@ def blank(data):
 
 def clean_data(data):
     
-    #Alle Fragen zu Drogenkonsum
-    df_new = data.loc[:,'CIGEVER':'MMFGIVE']
-    df_new.drop(df_new.loc[:,'PREGNANT':'YMDEIMUDPY'].columns, axis='columns', inplace=True)
-    print("CIGO",df_new["CIGOFRSM"].unique())
-    #df_work=data.loc[:,('QUESTID2','CADRLAST':'MMFGIVE')]
+    #Alle recorded Fragen zu Drogenkonsum
+    df_imputed_drug_use = data.loc[:,'IRCIGRC':'SRCCLFRSED']
+    df_recorded_special_drug = data.loc[:,'ANYNDLREC':'GHBMONR']
+    df_recorded_risk = data.loc[:,'GRSKCIGPKD':'APPDRGMON2']
+    df_recorded_drug_dependence = data.loc[:,'IRCGIRTB':'AUDNODUD']
+    df_recorded_drug_treatment = data.loc[:,'TXEVRRCVD2':'NDTRNMIMPT']
+    df_recorded_alcohol = data.loc[:,'UADPEOP':'KRATMON']
 
-    #df_new=pd.merge(df_new, data.loc[:,'CADRLAST':'MMFGIVE'],how='left', on='QUESTID2') Fehler weil Questid2 nicht im Dataframe vohanden ist
-
+    df_new=pd.concat([df_imputed_drug_use, df_recorded_special_drug, df_recorded_risk, df_recorded_drug_dependence, df_recorded_drug_treatment, df_recorded_alcohol], axis=1)
+    
     #Alles inklusive Mental Health Einteilung
     df_new['Mental_health_status'] = data['MI_CAT_U'] 
+
+    #Alle Spalten woher die Antworten kommen (questionair, imputed,...) droppen (114 Spalten)
+    df_new.drop(columns=[
+        'IICIGRC', 'II2CIGRC', 'IICGRRC', 'II2CGRRC', 'IIPIPLF', 'IIPIPMN', 'IISMKLSSREC', 'IIALCRC', 'II2ALCRC', 'IIMJRC', 'II2MJRC', 'IICOCRC', 
+        'II2COCRC', 'IICRKRC', 'II2CRKRC', 'IIHERRC', 'II2HERRC', 'IIHALLUCREC', 'IILSDRC', 'II2LSDRC', 'IIPCPRC', 'II2PCPRC', 'IIECSTMOREC', 'IIDAMTFXREC', 
+        'IISALVIAREC', 'IIINHALREC', 'IIMETHAMREC', 'IIPNRANYREC', 'IIOXCNANYYR', 'IITRQANYREC', 'IISTMANYREC', 'IISEDANYREC', 'IIPNRNMREC', 'IIOXCNNMYR', 
+        'IITRQNMREC', 'IISTMNMREC', 'IISEDNMREC', 'IIALCFY', 'II2ALCFY', 'IIMJFY',  'II2MJFY', 'IICOCFY', 'II2COCFY', 'IICRKFY', 'II2CRKFY', 'IIHERFY', 'II2HERFY',
+        'IIHALLUCYFQ', 'IIINHALYFQ', 'IIMETHAMYFQ', 'IICIGFM', 'II2CIGFM', 'IICGRFM', 'II2CGRFM', 'IISMKLSS30N', 'IIALCFM', 'II2ALCFM', 'IIALCBNG30D', 'IIMJFM', 
+        'II2MJFM', 'IICOCFM', 'II2COCFM', 'IICRKFM', 'II2CRKFM', 'IIHERFM', 'II2HERFM', 'IIHALLUC30N', 'IIINHAL30N', 'IIMETHAM30N', 'IIPNRNM30FQ', 'IITRQNM30FQ',
+        'IISTMNM30FQ', 'IISEDNM30FQ', 'IICIGAGE', 'IICIGYFU', 'IICDUAGE', 'IICD2YFU', 'IICGRAGE', 'IICGRYFU', 'IISMKLSSTRY', 'IISMKLSSYFU', 'IIALCAGE', 'IIALCYFU',
+        'IIMJAGE', 'IIMJYFU', 'IICOCAGE', 'IICOCYFU', 'IICRKAGE', 'IICRKYFU', 'IIHERAGE', 'IIHERYFU', 'IIHALLUCAGE', 'IIHALLUCYFU', 'IILSDAGE', 'IILSDYFU', 'IIPCPAGE',
+        'IIPCPYFU', 'IIECSTMOAGE', 'IIECSTMOYFU', 'IIINHALAGE', 'IIINHALYFU', 'IIMETHAMAGE', 'IIMETHAMYFU', 'IIPNRNMINIT', 'IITRQNMINIT', 'IISTMNMINIT', 'IISEDNMINIT',
+        'IIPNRNMYFU', 'IIPNRNMAGE', 'IITRQNMYFU', 'IITRQNMAGE', 'IISTMNMYFU', 'IISTMNMAGE', 'IISEDNMYFU', 'IISEDNMAGE'
+        ], inplace=True)
+
+
+    #Alle leere Einträge füllen die eigentlich Nein sein sollten
+    df_new[[
+        'CIGAVGD', 'CIGAVGM', 'ALCNUMDKPM', 'SRCPNRNM2', 'SRCSTMNM2', 'SRCSEDNM2', 'SRCFRPNRNM', 'SRCFRTRQNM', 
+        'SRCFRSTMNM', 'SRCFRSEDNM', 'SRCCLFRPNR', 'SRCCLFRTRQ', 'SRCCLFRSTM', 'SRCCLFRSED'
+    ]] = df_new[[
+        'CIGAVGD', 'CIGAVGM', 'ALCNUMDKPM', 'SRCPNRNM2', 'SRCSTMNM2', 'SRCSEDNM2', 'SRCFRPNRNM', 'SRCFRTRQNM', 
+        'SRCFRSTMNM', 'SRCFRSEDNM', 'SRCCLFRPNR', 'SRCCLFRTRQ', 'SRCCLFRSTM', 'SRCCLFRSED'
+    ]].fillna(0)
+    
+    #Hier ist 0 schon besetzt deswegen habe ich die Nein einträge provisorisch auf 3 geändert
+    df_new['CIG1PACK']=df_new['CIG1PACK'].fillna(3)
+
+    #Die wenigen Einträge mit missing Values droppen (581 Reihen gelöscht, 55555 Reihen übrig)
+    df_new =df_new.dropna(subset=['PNRMAINRSN', 'TRQMAINRSN', 'STMMAINRSN', 'SEDMAINRSN'])
+
+    #Alle Zeilen löschen mit NA in Mental Health !!wie viele? brauchen wir auch zum argumentieren für die Arbeit!!
+    df_cleaned = df_new.dropna(subset=['Mental_health_status'])
+    print('Number of deleted rows:', len(df_new)-len(df_cleaned))
 
     #Übersicht neues Dataset
     print('Shape of dataset: ',df_new.shape)
@@ -61,10 +97,6 @@ def clean_data(data):
     print(df_new.head(10))
     print('Number of duplicated rows:',df_new.duplicated().sum()) #duplicate rows
 
-    #Alle Zeilen löschen mit NA in Mental Health !!wie viele? brauchen wir auch zum argumentieren für die Arbeit!!
-    df_cleaned = df_new.dropna(subset=['Mental_health_status'])
-    print('Number of deleted rows:', len(df_new)-len(df_cleaned))
-    print("CIGO",df_cleaned["CIGOFRSM"].unique())
     missing_values_per_column = df_cleaned.isna().sum().sort_values(ascending=False)
     print('++++Number of missing values per Column++++')
     print(missing_values_per_column)
@@ -75,14 +107,6 @@ def clean_data(data):
     df_cleaned= df_cleaned.fillna(0)
     
     print('Are there still missing values:', df_cleaned.isna().any().any()) 
-    
-    #alle Spalten löschen die mehr als  2/3 Blank angaben haben
-    df_cleaned=blank(df_cleaned)
-    #allen skip angaben die Nummer 99 zuordnern
-    df_cleaned=skip99(df_cleaned)
-    
-    #hier noch drüber nachdenken ob NANs und blanks dasselbe sind und ob man das so löschen möchte
-
     print('+++++Shape finales Dataset+++++')
     print(df_cleaned.shape) #(42739, 1632) verbliebenes Dataset davor (56136, 1756): 13397 rows and 124 columns deleted
 
@@ -105,7 +129,7 @@ def replace_data(data_name):
     data_name['STMNMLIF']=data_name['STMNMLIF'].replace(91,2)
     data_name['SEDNMLIF']=data_name['SEDNMLIF'].replace(91,2)
     
-data=pd.read_csv('../data/NSDUH-2019.tsv', sep='\t')
+data=pd.read_csv('../data/NSDUH-2019.tsv', sep='\t', index_col=0)
 df_cleaned=clean_data(data)
 
 #Visualisieren
