@@ -132,78 +132,43 @@ def replace_data(data_name):
 data=pd.read_csv('../data/NSDUH-2019.tsv', sep='\t', index_col=0)
 df_cleaned=clean_data(data)
 
-#Visualisieren
+'''
+**************************************************************************************************************************************
+Visualiseren
+**************************************************************************************************************************************
+'''
 #Ob jemals Drogen konsumiert wurden bzw. Abhänigkeit von Drogen
-drug_data=df_cleaned[['CIGEVER','ALCEVER','MJEVER','COCEVER','CRKEVER','HEREVER','HALLUCEVR','INHALEVER','METHAMEVR','PNRANYLIF','TRQANYLIF','STMANYLIF','SEDANYLIF','PNRNMLIF','TRQNMLIF','STMNMLIF','SEDNMLIF']]
+drug_data=data[['CIGEVER','ALCEVER','MJEVER','COCEVER','CRKEVER','HEREVER','HALLUCEVR','INHALEVER','METHAMEVR','PNRANYLIF','TRQANYLIF','STMANYLIF','SEDANYLIF','PNRNMLIF','TRQNMLIF','STMNMLIF','SEDNMLIF']]
 replace_data(drug_data)
-drug_data_with_ment = df_cleaned[['CIGEVER','ALCEVER','MJEVER','COCEVER','CRKEVER','HEREVER','HALLUCEVR','INHALEVER','METHAMEVR','PNRANYLIF','TRQANYLIF','STMANYLIF','SEDANYLIF','PNRNMLIF','TRQNMLIF','STMNMLIF','SEDNMLIF','Mental_health_status']] 
-replace_data(drug_data_with_ment) 
 
 melted_drug_data=drug_data.melt(var_name='Column', value_name='Value')
-print(len(melted_drug_data))
 filtered_drug_data=melted_drug_data[melted_drug_data['Value'].isin([1,2])] #gibt hier auch noch andere wie don't know und refused
-print(len(filtered_drug_data))
-
-drug_dependet=data[['DNICNSP', 'DEPNDALC', 'DEPNDMRJ', 'DEPNDCOC', 'DEPNDHER', 'DEPNDPYHAL','DEPNDPYINH','DEPNDPYMTH', 'DEPNDPYPNR','DEPNDPYTRQ','DEPNDPYSTM','DEPNDPYSED', 'DEPNDPYPSY']]
-drug_dependet=drug_dependet.replace(0,2)
-melted_drug_depended=drug_dependet.melt(var_name='Column', value_name='Value')
-filtered_drug_depended= melted_drug_depended[melted_drug_depended['Value'].isin([1,2])]
-
-list_mean_mental_health_yes = []
-list_mean_mental_health_no = []
-count=0
-for col in drug_data_with_ment.iloc[:, :-1]:
-    mean_mental_health_yes = drug_data_with_ment.loc[drug_data_with_ment[col].isin([1]), 'Mental_health_status'].mean()
-    mean_mental_health_no = drug_data_with_ment.loc[drug_data_with_ment[col].isin([2]), 'Mental_health_status'].mean()
-    list_mean_mental_health_yes.append(mean_mental_health_yes)
-    list_mean_mental_health_no.append(mean_mental_health_no)
-
-ment_drug_yes = pd.DataFrame({'means':list_mean_mental_health_yes,'drugs':['CIGEVER','ALCEVER','MJEVER','COCEVER','CRKEVER','HEREVER','HALLUCEVR','INHALEVER','METHAMEVR','PNRANYLIF','TRQANYLIF','STMANYLIF','SEDANYLIF','PNRNMLIF','TRQNMLIF','STMNMLIF','SEDNMLIF']})
-ment_drug_no = pd.DataFrame({'means':list_mean_mental_health_no,'drugs':['CIGEVER','ALCEVER','MJEVER','COCEVER','CRKEVER','HEREVER','HALLUCEVR','INHALEVER','METHAMEVR','PNRANYLIF','TRQANYLIF','STMANYLIF','SEDANYLIF','PNRNMLIF','TRQNMLIF','STMNMLIF','SEDNMLIF']})
 
 #Plot allgemein Druge Usage
 fig1= sns.histplot(data=filtered_drug_data, x='Column', hue='Value', multiple="stack") #wär hier auch noch cool vielleicht dont know und so zu sehen also vielleicht eher melted_drug_data statt die filtered version
 plt.xticks(rotation=45)
-plt.legend(title='Have you ever used...', labels=['Yes','No']) #hier irgendwie vertauscht siehe plot (alkohol macht zb keinen sinn dass ja und nein so)
+plt.legend(title='Have you ever used...', labels=['No','Yes']) 
 plt.xlabel('Different drugs')
 plt.ylabel('Number of people')
 plt.tight_layout()
 plt.savefig('../output/drug_use.png')
 plt.close()
 
-#Plot dependency
-fig2= sns.countplot(data=filtered_drug_depended, x='Column',) #stimmt irgendwas nicht kann nicht sein dass alle leute drogen nehmen
-plt.xticks(rotation=45)
-plt.xlabel('Different drugs')
-plt.ylabel('Number of people')
-plt.tight_layout()
-plt.savefig('../output/drug_depended_use.png')
-plt.close()
-
 #Plot Menatl Health
-fig3= sns.countplot(data=df_cleaned, x='Mental_health_status')
-#plt.xticks(rotation=45)
+category_mapping = {
+    0.0: 'No MI',
+    1.0: 'Mild MI',
+    2.0: 'Moderate MI',
+    3.0: 'Serious MI'
+}
+
+fig2= sns.countplot(data=df_cleaned, x='Mental_health_status')
+fig2.set_xticklabels([category_mapping[float(label.get_text())] for label in fig3.get_xticklabels()])
 plt.xlabel('Mental Health Status')
 plt.ylabel('Number of people')
 plt.tight_layout()
 plt.savefig('../output/mental_health_status.png')
-
-#Plot mental health per drug
-fig4, axs = plt.subplots(2)
-sns.barplot(data=ment_drug_no,x='drugs',y='means', ax=axs[0]) #hier stimmt auch irgendwas nicht da der durchschnitt über 4 ist dabei geht die scala nur bis 3
-axs[0].set_title('Mental Health if no drugs')
-axs[0].tick_params(axis='x', rotation=45)
-
-
-sns.barplot(data=ment_drug_yes,x='drugs',y='means', ax=axs[1]) #hier anders falsch
-axs[1].set_title('Mental Health if drug taken')
-plt.xticks(rotation=45)
-plt.tight_layout()
-
-plt.savefig('../output/mental_health_status_vs_drugtypes.png')
 plt.close()
-
-
 
 '''
 **************************************************************************************************************************************
