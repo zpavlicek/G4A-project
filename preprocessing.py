@@ -393,6 +393,34 @@ plt.ylabel("Top features")
 plt.title("Feature importance of top 20 features normalized across 10 folds")
 plt.tight_layout()
 plt.savefig('../output/importance.png')
+'''
+**************************************************************************************************************************************
+Handling imbalanced data
+**************************************************************************************************************************************
+'''
+################################### random oversampling ################################################
+def randomoversampling(x,y,sampling_strategy):
+    resample=SMOTE(sampling_strategy=sampling_strategy)
+    x_resampled, y_resampled = resample.fit_resample(x, y)
+    return x_resampled, y_resampled
+################################### random undersampling ################################################
+def randomundersampling(x,y,sampstrat):
+    undersampler = RandomUnderSampler(sampling_strategy=sampstrat, random_state=42)
+    x_resampled, y_resampled = undersampler.fit_resample(x, y)
+    return x_resampled, y_resampled
+
+d={0.0 : y_train.value_counts()[0.0], 1.0:20000, 2.0:18000, 3.0:19000}
+x_resampled, y_resampled=randomoversampling(X_train, y_train, d) #majority class bleibt gleich nur alle anderen werden mehr
+x_resampled, y_resampled=randomundersampling(x_resampled, y_resampled, "auto") #bisschen was von majority class wird von 28746 auf etwa 17500 reduziert
+
+
+plt.close()
+fig= sns.countplot( x=y_resampled)
+#plt.xticks(rotation=45)
+plt.xlabel('Mental Health Status balanced')
+plt.ylabel('Number of people')
+plt.tight_layout()
+plt.savefig('../output/mental_health_status_balanced.png')
 
 
 print('Fertig')
