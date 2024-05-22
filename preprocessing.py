@@ -316,22 +316,11 @@ feature_importance_df = pd.DataFrame({
     'Error': std
 })
 
-#das was ich ausprobiert hab und ewig geht, können wa sonst auch wieder löschen
-"""X_train_fs, X_test_fs, fs = select_features(X_train, y_train, X_test)
-
-d_sorted = dict(sorted(d.items(), key=lambda item: item[1]))
-sorted = sorted_features(fs, valuesofinterest)
-top_15 = list(sorted.items())[:15]
-for i in range(len(top_15)):
-    print('Feature %d: %f' % (i, top_15[i]))"""
-
-
-
-#sortieren von values in absteigend reihenfolge
-feature_importance_df.sort_values(by='Average Coefficient', ascending=False, inplace=True) #value sort
+#sort
+feature_importance_df.sort_values(by='Average Mutual Information', ascending=False, inplace=True) 
 feature_importance_df_top = feature_importance_df.head(20) #top 20 features
 '''
-feature_coeff_list=list(feature_importance_df['Average Coefficient'])
+feature_coeff_list=list(feature_importance_df['Average Mutual Information'])
 diff=0
 index=0
 secdiff=0
@@ -361,23 +350,24 @@ print(diff, secdiff, tridiff, fodiff, index, secind, triind, foind)
 
     
 
-
-#sortierung mit dictionary (is ohne folds, können wa wenn wir lieber das benutzen möchten anpassen)
+'''
+#sortierung mit dictionary chi
 """multiinfsorted=dict(sorted(mutinfo.items(), key=lambda x:x[1], reverse=True))
 multkey=list(multiinfsorted.keys())[:30]
 multval=list(multiinfsorted.values())[:30]"""
+'''
 
 #plot mit dataframe erstellt
 plt.close()
 figure = plt.barh(
     feature_importance_df_top['Feature'], 
-    feature_importance_df_top['Average Coefficient'], 
-    xerr = feature_importance_df_top['Error']
+    feature_importance_df_top['Average Mutual Information'], 
+    xerr = feature_importance_df_top['Standard Error']
     )
 
 plt.xlabel("Averaged Mutual Information")
 plt.ylabel("Top features")
-plt.title("Feature importance of top 20 features normalized across 10 folds")
+plt.title("Feature importance of top 20 features averaged across 10 folds")
 plt.tight_layout()
 plt.savefig('../output/importance.png')
 '''
