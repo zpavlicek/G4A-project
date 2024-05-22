@@ -7,6 +7,11 @@ from sklearn.feature_selection import mutual_info_classif, SelectKBest
 from sklearn.model_selection import StratifiedKFold, train_test_split
 import warnings
 from sklearn.metrics import mutual_info_score #brauchen wir nicht mehr
+from imblearn.over_sampling import RandomOverSampler, SMOTE
+from imblearn.under_sampling import RandomUnderSampler 
+from imblearn.combine import SMOTETomek
+from imblearn.under_sampling import TomekLinks
+#ihr müsst evt. noch imblearn runterladen (pip install imbalanced-learn)
 
 
 warnings.filterwarnings("ignore")
