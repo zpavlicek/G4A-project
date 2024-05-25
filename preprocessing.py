@@ -301,7 +301,7 @@ for train_i, test_i in skf.split(X,Y):
 
 
 mutinfomatrix = np.array(mutinfolist) 
-std = np.std(mutinformatrix, axis=0) #berechnung standardabweichung über folds
+std = np.std(mutinfomatrix, axis=0) #berechnung standardabweichung über folds
 average_mutinfo = np.mean(mutinfomatrix, axis=0) #mean über folds
 
 feature_importance_df = pd.DataFrame({ 
