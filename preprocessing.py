@@ -130,9 +130,9 @@ def clean_data(data):
 def replace_data(data_name):
     data_name[['HALLUCEVR', 'INHALEVER', 'CRKEVER', 'PNRNMLIF', 'TRQNMLIF', 'STMNMLIF', 'SEDNMLIF']]=data_name[['HALLUCEVR', 'INHALEVER', 'CRKEVER', 'PNRNMLIF', 'TRQNMLIF', 'STMNMLIF', 'SEDNMLIF']].replace(91,2)
     data_name[['PNRANYLIF', 'TRQANYLIF', 'STMANYLIF', 'SEDANYLIF','PNRNMLIF', 'TRQNMLIF', 'STMNMLIF', 'SEDNMLIF']]=data_name[['PNRANYLIF', 'TRQANYLIF', 'STMANYLIF', 'SEDANYLIF','PNRNMLIF', 'TRQNMLIF', 'STMNMLIF', 'SEDNMLIF']].replace(5,1)
-    data_name[['NDFLTXILAL', 'NDFLTXILL', 'NDFLTXALC', 'UADCAR', 'UADHOME', 'UADOTHM', 'UADPUBL', 'UADBAR', 'UADEVNT', 'UADSCHL', 'UADROTH']]=data_name[['NDFLTXILAL', 'NDFLTXILL', 'NDFLTXALC', 'UADCAR', 'UADHOME', 'UADOTHM', 'UADPUBL', 'UADBAR', 'UADEVNT', 'UADSCHL', 'UADROTH']].replace(2,0)
-    data_name[['UADPAID', 'UADMONY', 'UADBWHO']]=data_name[['UADPAID', 'UADMONY', 'UADBWHO']].replace(3,2)
-    data_name[['UADPAID', 'UADMONY', 'UADBWHO']]=data_name[['UADPAID', 'UADMONY', 'UADBWHO']].replace(2,0)
+    #data_name[['NDFLTXILAL', 'NDFLTXILL', 'NDFLTXALC', 'UADCAR', 'UADHOME', 'UADOTHM', 'UADPUBL', 'UADBAR', 'UADEVNT', 'UADSCHL', 'UADROTH']]=data_name[['NDFLTXILAL', 'NDFLTXILL', 'NDFLTXALC', 'UADCAR', 'UADHOME', 'UADOTHM', 'UADPUBL', 'UADBAR', 'UADEVNT', 'UADSCHL', 'UADROTH']].replace(2,0)
+    #data_name[['UADPAID', 'UADMONY', 'UADBWHO']]=data_name[['UADPAID', 'UADMONY', 'UADBWHO']].replace(3,2)
+    #data_name[['UADPAID', 'UADMONY', 'UADBWHO']]=data_name[['UADPAID', 'UADMONY', 'UADBWHO']].replace(2,0)
 
 data=pd.read_csv('../data/NSDUH-2019.tsv', sep='\t', index_col=0)
 df_cleaned=clean_data(data)
