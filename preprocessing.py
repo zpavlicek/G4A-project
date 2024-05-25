@@ -274,7 +274,7 @@ df_cleaned.loc[df_cleaned['CRKUS30A'] < 31, 'CRKUS30A'] = 1 #changed in consumed
 
 
 ################################### feature selection based on statistics ################################################
-X  = df_cleaned.loc[:,'IRCIGRC':'SRCCLFRSTM']
+X  = df_cleaned.drop(columns=['Mental_health_status'])
 Y  = df_cleaned['Mental_health_status']
 
 ''' CHI IMPLEMENTATION
