@@ -458,7 +458,7 @@ clf2_LR.fit(X2_train, y2_train)
 
 ################################### Performance Evaluation ################################################
 
-from sklearn.metrics import (accuracy_score, confusion_matrix, precision_score, recall_score, f1_score, classification_report, roc_curve, auc)
+from sklearn.metrics import (accuracy_score, confusion_matrix, precision_score, recall_score, f1_score, classification_report, roc_curve, auc, roc_auc_score)
 from sklearn.preprocessing import label_binarize
 
 def eval_Performance(y_eval, X_eval, clf, clf_name='My Classifier'):
