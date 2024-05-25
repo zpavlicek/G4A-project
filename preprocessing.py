@@ -402,4 +402,42 @@ plt.tight_layout()
 plt.savefig('../output/mental_health_status_balanced.png')
 
 
+'''
+**************************************************************************************************************************************
+Models
+**************************************************************************************************************************************
+'''
+################################### Support Vecor Machines################################################
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import SGDClassifier
+'''
+pipeline = Pipeline([
+    ('scaler', StandardScaler()),
+    ('pca', PCA(n_components=100)),  # Optional step for dimensionality reduction
+    ('svm', SGDClassifier(loss="hinge", penalty="l2", max_iter=5))  # You can try different kernels and parameters
+])
+# Train the model
+pipeline.fit(X_train, y_train)
+
+# Evaluate the model
+accuracy = pipeline.score(X_test, y_test)
+print(f"Accuracy: {accuracy:.4f}")
+'''
+pipeline = Pipeline([
+    ('scaler', StandardScaler()),
+    ('pca', PCA(n_components=100)),  # Optional step for dimensionality reduction
+    ('svm', SVC(kernel='rbf', C=1.0))  
+])
+# Train the model
+pipeline.fit(X_train, y_train)
+
+# Evaluate the model
+accuracy = pipeline.score(X_test, y_test)
+print(f"Accuracy: {accuracy}")
+#Accuracy: 0.7225
+
+
 print('Fertig')
