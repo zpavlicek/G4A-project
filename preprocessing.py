@@ -439,5 +439,54 @@ accuracy = pipeline.score(X_test, y_test)
 print(f"Accuracy: {accuracy}")
 #Accuracy: 0.7225
 
+################################### Logistic regression ################################################
+from sklearn.linear_model import LogisticRegression
+#LR mit unserer Featureselection und oversampling
+
+clf_LR = LogisticRegression(multi_class='multinomial', solver='saga')
+clf_LR.fit(X_train, y_train)
+
+#LR mit den vorhandenen Funktionen
+
+X2  = df_cleaned.drop(columns=['Mental_health_status'])
+Y2  = df_cleaned['Mental_health_status']
+
+X2_train, X2_test, y2_train, y2_test = train_test_split(X2, Y2, test_size=0.2, random_state=1)
+
+clf2_LR = LogisticRegression(multi_class='multinomial', solver='saga', max_iter=200, penalty='l1', class_weight='balanced')
+clf2_LR.fit(X2_train, y2_train)
+
+################################### Performance Evaluation ################################################
+
+from sklearn.metrics import (accuracy_score, confusion_matrix, precision_score, recall_score, f1_score, classification_report, roc_curve, auc)
+from sklearn.preprocessing import label_binarize
+
+def eval_Performance(y_eval, X_eval, clf, clf_name='My Classifier'):
+    # Vorhersagen
+    y_pred = clf.predict(X_eval)
+    y_pred_proba = clf.predict_proba(X_eval)
+    
+    # Evaluation
+    accuracy = accuracy_score(y_eval, y_pred)
+    precision = precision_score(y_eval, y_pred, average='weighted')
+    recall = recall_score(y_eval, y_pred, average='weighted')
+    f1 = f1_score(y_eval, y_pred, average='weighted')
+    
+    # ROC AUC für Multiclass
+    y_eval_bin = label_binarize(y_eval, classes=range(len(clf.classes_)))
+    roc_auc = roc_auc_score(y_eval_bin, y_pred_proba, average='weighted', multi_class='ovr')
+    
+    return accuracy, precision, recall, f1, roc_auc
+
+
+df_performance = pd.DataFrame(columns = ['accuracy', 'precision', 'recall', 'f1', 'roc_auc'] )
+
+df_performance.loc['LR (test)',:] = eval_Performance(y_test, X_test, clf_LR, clf_name = 'LR')
+df_performance.loc['LR (train)',:] = eval_Performance(y_train, X_train, clf_LR, clf_name = 'LR (train)')
+df_performance.loc['LR2 (test)',:] = eval_Performance(y2_test, X2_test, clf2_LR, clf_name = 'LR2')
+df_performance.loc['LR2 (train)',:] = eval_Performance(y2_train, X2_train, clf2_LR, clf_name = 'LR2 (train)')
+
+print(df_performance)
 
 print('Fertig')
+
