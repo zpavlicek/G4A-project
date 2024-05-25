@@ -4,7 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import scipy.stats as sts
 from sklearn.feature_selection import mutual_info_classif, SelectKBest
-from sklearn.model_selection import StratifiedKFold, train_test_split
+from sklearn.model_selection import StratifiedKFold, train_test_split, GridSearchCV, RandomizedSearchCV
 from imblearn.over_sampling import RandomOverSampler, SMOTE
 from imblearn.under_sampling import RandomUnderSampler 
 from imblearn.combine import SMOTETomek
@@ -312,15 +312,18 @@ feature_importance_df = pd.DataFrame({
 
 #sort
 feature_importance_df.sort_values(by='Average Mutual Information', ascending=False, inplace=True) 
+feature_importance_df = feature_importance_df.drop(feature_importance_df[feature_importance_df['Feature']=='CAMHPROB2'].index)
+feature_importance_df = feature_importance_df.drop(feature_importance_df[feature_importance_df['Feature']=='RCVYMHPRB'].index)
 feature_importance_df_top = feature_importance_df.head(20) #top 20 features
+print(feature_importance_df.head(5))
 important_features=feature_importance_df.head(100)
-df_features_selected=df_cleaned[list(important_features['Feature'])]
+X_train_selected=X_train[list(important_features['Feature'])]
+X_test_selected=X_test[list(important_features['Feature'])]
+X_train=X_train_selected
+X_test=X_test_selected
 
-#neuer split
-X  = df_features_selected
-Y  = df_cleaned['Mental_health_status']
+X  = df_cleaned[list(important_features['Feature'])]
 
-X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=1)
 '''
 feature_coeff_list=list(feature_importance_df['Average Mutual Information'])
 diff=0
@@ -350,8 +353,6 @@ for i in range(3, len(feature_coeff_list)):
 print(diff, secdiff, tridiff, fodiff, index, secind, triind, foind)
 '''
 
-    
-
 '''
 #sortierung mit dictionary chi
 """multiinfsorted=dict(sorted(mutinfo.items(), key=lambda x:x[1], reverse=True))
@@ -372,6 +373,7 @@ plt.ylabel("Top features")
 plt.title("Feature importance of top 20 features averaged across 10 folds")
 plt.tight_layout()
 plt.savefig('../output/importance.png')
+
 '''
 **************************************************************************************************************************************
 Handling imbalanced data
@@ -407,6 +409,7 @@ plt.savefig('../output/mental_health_status_balanced.png')
 Models
 **************************************************************************************************************************************
 '''
+
 ################################### Performance Evaluation ################################################
 from sklearn.metrics import (accuracy_score, confusion_matrix, precision_score, recall_score, f1_score, classification_report, roc_curve, auc, roc_auc_score)
 from sklearn.preprocessing import label_binarize
@@ -481,13 +484,66 @@ X2_train, X2_test, y2_train, y2_test = train_test_split(X2, Y2, test_size=0.2, r
 clf2_LR = LogisticRegression(multi_class='multinomial', solver='saga', max_iter=200, penalty='l1', class_weight='balanced')
 clf2_LR.fit(X2_train, y2_train)
 
+###################################  Random Forest #######################################################
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBRFClassifier
 
-df_performance.loc['LR (test)',:] = eval_Performance(y_test, X_test, clf_LR, clf_name = 'LR')
+param_distributions = {
+    'n_estimators': [100, 200, 300, 400, 500],
+    'max_depth': [10, 20, 30, 40, 50, None],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4],
+    'max_features': ['auto', 'sqrt', 'log2'],
+    'bootstrap': [True, False]
+}
+
+'''param_distributions = {
+    'n_estimators': [100, 200, 300, 400, 500],
+    'max_depth': [3, 5, 7, 10],
+    'learning_rate': [0.01, 0.05, 0.1, 1],
+    'subsample': [0.6, 0.8, 1.0],
+    'colsample_bynode': [0.6, 0.8, 1.0],
+    'reg_alpha': [0, 0.01, 0.1],
+    'reg_lambda': [1, 1.5, 2],
+}'''
+
+clf_RF = RandomForestClassifier(random_state=0)
+'''xgb_model = XGBRFClassifier(random_state=0, use_label_encoder = False, eval_metric = 'mlogloss', tree_method = 'gpu_hist') #nur für NVIDIA GPUS
+'''
+random_search = RandomizedSearchCV(
+    estimator=clf_RF,
+    param_distributions=param_distributions,
+    cv=skf,
+    n_iter=10,
+    random_state=0,
+    n_jobs=-1, #use als CPU-Cores
+    verbose=1, # minimal output
+    scoring = "accuracy"
+)
+
+random_search.fit(X_train, y_train)
+best_params = random_search.best_params_
+print(f"Best parameters found: {best_params}")
+
+best_rf = random_search.best_estimator_
+best_rf.fit(X_train, y_train)
+
+
+"""y_pred = best_rf.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy}")
+"""
+################################### Analysis Performance Metrics #######################################################
+#Random Forest
+df_performance.loc['RF (test)',:] = eval_Performance(y_test, X_test, best_rf, clf_name='Random Forest')
+df_performance.loc['RF (train)',:] = eval_Performance(y_train, X_train, best_rf, clf_name='Random Forest (train)')
+
+#Logisitc Regression
+"""df_performance.loc['LR (test)',:] = eval_Performance(y_test, X_test, clf_LR, clf_name = 'LR')
 df_performance.loc['LR (train)',:] = eval_Performance(y_train, X_train, clf_LR, clf_name = 'LR (train)')
 df_performance.loc['LR2 (test)',:] = eval_Performance(y2_test, X2_test, clf2_LR, clf_name = 'LR2')
-df_performance.loc['LR2 (train)',:] = eval_Performance(y2_train, X2_train, clf2_LR, clf_name = 'LR2 (train)')
+df_performance.loc['LR2 (train)',:] = eval_Performance(y2_train, X2_train, clf2_LR, clf_name = 'LR2 (train)')"""
 
 print(df_performance)
 
 print('Fertig')
-
