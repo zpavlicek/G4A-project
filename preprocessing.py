@@ -313,6 +313,14 @@ feature_importance_df = pd.DataFrame({
 #sort
 feature_importance_df.sort_values(by='Average Mutual Information', ascending=False, inplace=True) 
 feature_importance_df_top = feature_importance_df.head(20) #top 20 features
+important_features=feature_importance_df.head(100)
+df_features_selected=df_cleaned[list(important_features['Feature'])]
+
+#neuer split
+X  = df_features_selected
+Y  = df_cleaned['Mental_health_status']
+
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=1)
 '''
 feature_coeff_list=list(feature_importance_df['Average Mutual Information'])
 diff=0
@@ -356,7 +364,7 @@ plt.close()
 figure = plt.barh(
     feature_importance_df_top['Feature'], 
     feature_importance_df_top['Average Mutual Information'], 
-    xerr = feature_importance_df_top['Standard Error']
+    xerr = feature_importance_df_top['Error']
     )
 
 plt.xlabel("Averaged Mutual Information")
