@@ -390,7 +390,7 @@ def randomundersampling(x,y,sampstrat):
 
 d={0.0 : y_train.value_counts()[0.0], 1.0:20000, 2.0:18000, 3.0:19000}
 x_resampled, y_resampled=randomoversampling(X_train, y_train, d) #majority class bleibt gleich nur alle anderen werden mehr
-x_resampled, y_resampled=randomundersampling(x_resampled, y_resampled, "auto") #bisschen was von majority class wird von 28746 auf etwa 17500 reduziert
+X_train, y_train=randomundersampling(x_resampled, y_resampled, "auto") #bisschen was von majority class wird von 28746 auf etwa 17500 reduziert
 
 
 plt.close()
