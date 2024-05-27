@@ -441,31 +441,92 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import SGDClassifier
-'''
-pipeline = Pipeline([
-    ('scaler', StandardScaler()),
-    ('pca', PCA(n_components=100)),  # Optional step for dimensionality reduction
-    ('svm', SGDClassifier(loss="hinge", penalty="l2", max_iter=5))  # You can try different kernels and parameters
-])
-# Train the model
-pipeline.fit(X_train, y_train)
+from sklearn.kernel_approximation import Nystroem, RBFSampler, PolynomialCountSketch
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import accuracy_score
 
-# Evaluate the model
-accuracy = pipeline.score(X_test, y_test)
-print(f"Accuracy: {accuracy:.4f}")
-'''
-pipeline = Pipeline([
-    ('scaler', StandardScaler()),
-    ('pca', PCA(n_components=100)),  # Optional step for dimensionality reduction
-    ('svm', SVC(kernel='rbf', C=1.0))  
-])
-# Train the model
-pipeline.fit(X_train, y_train)
+def check_linearsep(X_train, y_train):
+    sc=StandardScaler()
+    X_train=sc.fit_transform(X_train)
+    
+    model=SGDClassifier(loss="hinge", penalty="l2", max_iter=5)
+    model.fit(X_train, y_train)
+    acc=model.score(X_train, y_train)
+    print("The data is linearly seperable", acc==1)
+    print(acc)
 
-# Evaluate the model
-accuracy = pipeline.score(X_test, y_test)
-print(f"Accuracy: {accuracy}")
-#Accuracy: 0.7225
+def SVC_rbf(X_train, y_train, X_test, y_test):
+    pipeline = Pipeline([
+    ('scaler', StandardScaler()),
+    ('pca', PCA(n_components=100)),  
+    ('svm', SVC(kernel='rbf', C=1.0))  #hier schaun was für C
+    ])
+    # Train the model
+    pipeline.fit(X_train, y_train)
+    #hier evtl. noch kernel approximationn
+    # Evaluate the model
+    accuracy = pipeline.score(X_test, y_test)
+    print(f"Accuracy: {accuracy}") #hier 73% aber geht ewig
+
+def polynomcountsk(X_train, y_train, X_test, y_test):
+    n_runs=5
+    N_COMPONENTS = [150, 250, 500] #larger than the number of features --> larger than 100
+
+    for n in N_COMPONENTS:
+        accuracysum = 0
+        for i in range(n_runs):
+            pipeline = make_pipeline(    
+                PolynomialCountSketch(n_components=n, degree=4),
+                SGDClassifier(loss="hinge", penalty="l2", max_iter=5)
+            )
+            pipeline.fit(X_train, y_train)
+            accuracysum += pipeline.score(X_test, y_test)
+        accuracy=accuracysum/n_runs
+        print(f"Accuracy for {n} components: {accuracy}") #very bad accuracy for polynominal kernal aproximation between 27-36 % depending on dimension
+def model(X_train, y_train, X_test, y_test, kernelaprox, param_grid, ml):
+    
+    X_train = kernelaprox.fit_transform(X_train)
+    X_test = kernelaprox.transform(X_test)
+
+    model = GridSearchCV(ml, param_grid, cv=5, scoring='accuracy', n_jobs=-1) #5fold cross validation
+    model.fit(X_train, y_train)
+
+    print("Best model parameters:", model.best_params_)
+    print("Model accuracy:", model.score(X_test, y_test))
+
+
+#scaling the data
+sc=StandardScaler()
+X_train_sc=sc.fit_transform(X_train)
+X_test_sc=sc.transform(X_test)
+
+#Nystroem aprox with hyperparameter tuning for SGD
+kernelaprox = Nystroem(kernel= 'rbf', random_state=1, n_components=1000) #n_components=n_features
+param_grid = {
+    'alpha': [0.0001, 0.001, 0.01],
+    'max_iter': [1000, 2000, 3000],
+    'penalty': ['l2']
+}
+sgd = SGDClassifier(loss="hinge", early_stopping=True) #early stopping to terminate training when validation score is not improving hängt zusammen it max_iter
+#model(X_train_sc, y_train, X_test_sc, y_test, kernelaprox, param_grid, sgd)
+#Best model parameters: {'alpha': 0.0001, 'max_iter': 1000, 'penalty': 'l2'}
+#Model accuracy: 0.7250470809792844
+#etwa 4 min
+
+#RBF aprox with hyperparameter tuning for SGD
+kernelaprox=RBFSampler(random_state=1, n_components=1000) 
+param_grid = {
+    'alpha': [0.0001, 0.001, 0.01],
+    'max_iter': [1000, 2000, 3000],
+    'penalty': ['l2']
+}
+sgd = SGDClassifier(loss="hinge", early_stopping=True) #early stopping to terminate training when validation score is not improving hängt zusammen it max_iter
+#model(X_train_sc, y_train, X_test_sc, y_test, kernelaprox, param_grid, sgd)
+#Best model parameters: {'alpha': 0.0001, 'max_iter': 1000, 'penalty': 'l2'}
+#Model accuracy: 0.5065913370998116
+# etwa 2 Minuten
+polynomcountsk(X_train_sc, y_train, X_test_sc, y_test)
+
 
 ################################### Logistic regression ################################################
 from sklearn.linear_model import LogisticRegression
