@@ -417,7 +417,10 @@ from sklearn.preprocessing import label_binarize
 def eval_Performance(y_eval, X_eval, clf, clf_name='My Classifier'):
     # Vorhersagen
     y_pred = clf.predict(X_eval)
-    y_pred_proba = clf.predict_proba(X_eval)
+    try:
+        y_pred_proba = clf.predict_proba(X_eval)
+    except:
+        y_pred_proba='none'
     
     # Evaluation
     accuracy = accuracy_score(y_eval, y_pred)
@@ -427,7 +430,10 @@ def eval_Performance(y_eval, X_eval, clf, clf_name='My Classifier'):
     
     # ROC AUC für Multiclass
     y_eval_bin = label_binarize(y_eval, classes=range(len(clf.classes_)))
-    roc_auc = roc_auc_score(y_eval_bin, y_pred_proba, average='weighted', multi_class='ovr')
+    if y_pred_proba=='none':
+        roc_auc= 'none'
+    else:
+        roc_auc = roc_auc_score(y_eval_bin, y_pred_proba, average='weighted', multi_class='ovr')
     
     return accuracy, precision, recall, f1, roc_auc
 
@@ -494,6 +500,8 @@ def model(X_train, y_train, X_test, y_test, kernelaprox, param_grid, ml):
     print("Best model parameters:", model.best_params_)
     print("Model accuracy:", model.score(X_test, y_test))
 
+    best_model = model.best_estimator_
+    return eval_Performance(y_test, X_test, best_model, clf_name='SGD Classifier with {kernelaprox} kernel aproximation')
 
 #scaling the data
 sc=StandardScaler()
@@ -508,7 +516,8 @@ param_grid = {
     'penalty': ['l2']
 }
 sgd = SGDClassifier(loss="hinge", early_stopping=True) #early stopping to terminate training when validation score is not improving hängt zusammen it max_iter
-#model(X_train_sc, y_train, X_test_sc, y_test, kernelaprox, param_grid, sgd)
+evals=model(X_train_sc, y_train, X_test_sc, y_test, kernelaprox, param_grid, sgd)
+df_performance.loc['Linear SVM with Nystroem (rbf) kernel aproximation',:]=evals
 #Best model parameters: {'alpha': 0.0001, 'max_iter': 1000, 'penalty': 'l2'}
 #Model accuracy: 0.7250470809792844
 #etwa 4 min
