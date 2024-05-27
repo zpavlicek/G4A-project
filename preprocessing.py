@@ -525,7 +525,14 @@ sgd = SGDClassifier(loss="hinge", early_stopping=True) #early stopping to termin
 #Best model parameters: {'alpha': 0.0001, 'max_iter': 1000, 'penalty': 'l2'}
 #Model accuracy: 0.5065913370998116
 # etwa 2 Minuten
-polynomcountsk(X_train_sc, y_train, X_test_sc, y_test)
+
+#kernelaproximation with polynominal count sketch (without hyperparameter tuning)
+
+#polynomcountsk(X_train_sc, y_train, X_test_sc, y_test)
+
+#Accuracy for 150 components: 0.30018832391713746
+#Accuracy for 250 components: 0.29279661016949154
+#Accuracy for 500 components: 0.3126647834274953
 
 
 ################################### Logistic regression ################################################
