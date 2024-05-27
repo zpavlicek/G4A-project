@@ -439,7 +439,7 @@ df_performance = pd.DataFrame(columns = ['accuracy', 'precision', 'recall', 'f1'
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import SGDClassifier
 from sklearn.kernel_approximation import Nystroem, RBFSampler, PolynomialCountSketch
 from sklearn.model_selection import GridSearchCV
