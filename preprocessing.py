@@ -620,6 +620,30 @@ df_performance.loc['RF (train)',:] = eval_Performance(y_train, X_train, best_rf,
 df_performance.loc['LR (train)',:] = eval_Performance(y_train, X_train, clf_LR, clf_name = 'LR (train)')
 df_performance.loc['LR2 (test)',:] = eval_Performance(y2_test, X2_test, clf2_LR, clf_name = 'LR2')
 df_performance.loc['LR2 (train)',:] = eval_Performance(y2_train, X2_train, clf2_LR, clf_name = 'LR2 (train)')"""
+##################################### K-nearest neighbour ##############################################################
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
+pca = PCA(n_components=0.95) 
+X_train_pca = pca.fit_transform(X_train_sc)
+X_test_pca = pca.transform(X_test_sc)
+
+para_grid = {'n_neighbors': np.arange(1, 51)}
+
+knn = KNeighborsClassifier()
+
+grid_search= GridSearchCV(knn, para_grid, cv=n_splits)
+grid_search.fit(X_train_pca, y_train)
+
+print(f'Best n_neighbors: {grid_search.best_params_["n_neighbors"]}')
+
+best_knn = grid_search.best_estimator_
+'''
+knn = KNeighborsClassifier(n_neighbors=50)
+knn.fit(X_train_sc, y_train)
+'''
+df_performance.loc['KNN (test)',:]= eval_Performance(y_test, X_test_pca,knn,clf_name="K-nearest neighbor")
+df_performance.loc['KNN (train)',:] = eval_Performance(y_train, X_train_pca,knn,clf_name="K-nearest neighbor (train)")
 
 print(df_performance)
 
