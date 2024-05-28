@@ -370,7 +370,7 @@ figure = plt.barh(
 
 plt.xlabel("Averaged Mutual Information")
 plt.ylabel("Top features")
-plt.title("Feature importance of top 20 features averaged across 10 folds")
+plt.title("Top 20 features averaged across 10 folds")
 plt.tight_layout()
 plt.savefig('../output/importance.png')
 
@@ -396,13 +396,20 @@ X_train, y_train=randomundersampling(x_resampled, y_resampled, "auto") #bisschen
 
 
 plt.close()
-fig= sns.countplot( x=y_resampled)
+
+category_mapping = {
+    0.0: 'No MI',
+    1.0: 'Mild MI',
+    2.0: 'Moderate MI',
+    3.0: 'Serious MI'
+}
+fig3= sns.countplot( x=y_resampled)
+fig3.set_xticklabels([category_mapping[float(label.get_text())] for label in fig3.get_xticklabels()])
 #plt.xticks(rotation=45)
 plt.xlabel('Mental Health Status balanced')
 plt.ylabel('Number of people')
 plt.tight_layout()
 plt.savefig('../output/mental_health_status_balanced.png')
-
 
 '''
 **************************************************************************************************************************************
@@ -560,11 +567,12 @@ X2_train, X2_test, y2_train, y2_test = train_test_split(X2, Y2, test_size=0.2, r
 
 clf2_LR = LogisticRegression(multi_class='multinomial', solver='saga', max_iter=200, penalty='l1', class_weight='balanced')
 clf2_LR.fit(X2_train, y2_train)
-
+ 
 ###################################  Random Forest #######################################################
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBRFClassifier
 
+#hyperparameter tuning with randomSearchCV
 param_distributions = {
     'n_estimators': [100, 200, 300, 400, 500],
     'max_depth': [10, 20, 30, 40, 50, None],
@@ -610,19 +618,10 @@ best_rf.fit(X_train, y_train)
 accuracy = accuracy_score(y_test, y_pred)
 print(f"Accuracy: {accuracy}")
 """
-################################### Analysis Performance Metrics #######################################################
-#Random Forest
-df_performance.loc['RF (test)',:] = eval_Performance(y_test, X_test, best_rf, clf_name='Random Forest')
-df_performance.loc['RF (train)',:] = eval_Performance(y_train, X_train, best_rf, clf_name='Random Forest (train)')
-
-#Logisitc Regression
-"""df_performance.loc['LR (test)',:] = eval_Performance(y_test, X_test, clf_LR, clf_name = 'LR')
-df_performance.loc['LR (train)',:] = eval_Performance(y_train, X_train, clf_LR, clf_name = 'LR (train)')
-df_performance.loc['LR2 (test)',:] = eval_Performance(y2_test, X2_test, clf2_LR, clf_name = 'LR2')
-df_performance.loc['LR2 (train)',:] = eval_Performance(y2_train, X2_train, clf2_LR, clf_name = 'LR2 (train)')"""
 ##################################### K-nearest neighbour ##############################################################
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
 
 pca = PCA(n_components=0.95) 
 X_train_pca = pca.fit_transform(X_train_sc)
@@ -642,6 +641,18 @@ best_knn = grid_search.best_estimator_
 knn = KNeighborsClassifier(n_neighbors=50)
 knn.fit(X_train_sc, y_train)
 '''
+################################### Analysis Performance Metrics #######################################################
+#Random Forest
+df_performance.loc['RF (test)',:] = eval_Performance(y_test, X_test, best_rf, clf_name='Random Forest')
+df_performance.loc['RF (train)',:] = eval_Performance(y_train, X_train, best_rf, clf_name='Random Forest (train)')
+
+#Logisitc Regression
+df_performance.loc['LR (test)',:] = eval_Performance(y_test, X_test, clf_LR, clf_name = 'LR')
+df_performance.loc['LR (train)',:] = eval_Performance(y_train, X_train, clf_LR, clf_name = 'LR (train)')
+df_performance.loc['LR2 (test)',:] = eval_Performance(y2_test, X2_test, clf2_LR, clf_name = 'LR2')
+df_performance.loc['LR2 (train)',:] = eval_Performance(y2_train, X2_train, clf2_LR, clf_name = 'LR2 (train)')
+
+#Knearest Neighbors
 df_performance.loc['KNN (test)',:]= eval_Performance(y_test, X_test_pca,knn,clf_name="K-nearest neighbor")
 df_performance.loc['KNN (train)',:] = eval_Performance(y_train, X_train_pca,knn,clf_name="K-nearest neighbor (train)")
 
