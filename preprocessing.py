@@ -437,7 +437,7 @@ def eval_Performance(y_eval, X_eval, clf, clf_name='My Classifier'):
     
     # ROC AUC für Multiclass
     y_eval_bin = label_binarize(y_eval, classes=range(len(clf.classes_)))
-    if y_pred_proba=='none':
+    if y_pred_proba.all()=='none':
         roc_auc= 'none'
     else:
         roc_auc = roc_auc_score(y_eval_bin, y_pred_proba, average='weighted', multi_class='ovr')
