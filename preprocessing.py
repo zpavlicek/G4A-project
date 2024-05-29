@@ -639,8 +639,8 @@ df_performance.loc['RF (train)',:] = eval_Performance(y_train, X_train, best_rf,
 df_performance.loc['LR (test)',:] = eval_Performance(y_test_org, X_test_org, clf_LR, clf_name = 'LR')
 df_performance.loc['LR (train)',:] = eval_Performance(y_train_org, X_train_org, clf_LR, clf_name = 'LR (train)')
 
-df_performance.loc['LR (test, FS, OUS)',:] = eval_Performance(y_test, X_test, clf_LR_FS_OUS, clf_name = 'LR_FS_OUS')
-df_performance.loc['LR (train, FS, OUS)',:] = eval_Performance(y_train, X_train, clf_LR_FS_OUS, clf_name = 'LR_FS_OUS (train)')
+df_performance.loc['LR (test, FS, OUS)',:] = eval_Performance(y_test_sc, X_test_sc, clf_LR_FS_OUS, clf_name = 'LR_FS_OUS')
+df_performance.loc['LR (train, FS, OUS)',:] = eval_Performance(y_train_sc, X_train_sc, clf_LR_FS_OUS, clf_name = 'LR_FS_OUS (train)')
 
 df_performance.loc['LR2 (test)',:] = eval_Performance(y_test_org, X_test_org, clf2_LR, clf_name = 'LR2')
 df_performance.loc['LR2 (train)',:] = eval_Performance(y_train_org, X_train_org, clf2_LR, clf_name = 'LR2 (train)')
