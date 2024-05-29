@@ -267,7 +267,7 @@ relevfeatures=featureanalysischi(chi2)
 '''
 ################################### Splitting in Test and Train Set ######################################################
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=1) # split bei so grossem dataset gebraucht (siehe lesezeichen chrome) #was macht random state hier? wieder 42? checke leider nicht was die zahl genau macht
-
+X_train_org, X_test_org, y_train_org, y_test_org = X_train, X_test, y_train, y_test
 ################################### Cross Validation ######################################################
 #hab ich von HW5 übernommen und auf unseres überführt
 n_splits = 10 #bei so grossem dataset sollte man mehr splits verwenden um overfitting und bias zu vermeiden
