@@ -17,26 +17,6 @@ warnings.filterwarnings("ignore")
 
 #teilweise hat nans die bedeuten die leute nehmen keine drogen... können wir also doch nicht löschen zB SRCPNRNM2 gibt noch viele dort ZB PNRMAINRSN
 #beispiel statt replace df_cleaned.loc[df_cleaned['ALBSTWAY'] == 11, 'ALBSTWAY'] = 1
-def skip99(data):
-    data=data.replace(999,99)
-    data=data.replace(9999,99)
-    data=data.replace(89,99)
-    data=data.replace(989,99)
-    data=data.replace(9989,99)
-
-    return data
-
-def blank(data):
-    df_cleaned=data.replace(998,98)
-    df_cleaned=data.replace(9998,98)
-
-    num_rows_with_98 = (df_cleaned == 98).any(axis=1).sum()
-
-    for col in df_cleaned.columns:
-        if (df_cleaned[col] == 98).sum() > 22000:  #eigentlich könnte man hier die nans dazunehmen
-            del df_cleaned[col]
-    
-    return df_cleaned
 
 def clean_data(data):
     
@@ -276,6 +256,8 @@ df_cleaned.loc[df_cleaned['CRKUS30A'] < 31, 'CRKUS30A'] = 1 #changed in consumed
 ################################### feature selection based on statistics ################################################
 X  = df_cleaned.drop(columns=['Mental_health_status'])
 Y  = df_cleaned['Mental_health_status']
+X_org=X
+Y_org=Y
 
 ''' CHI IMPLEMENTATION
 SignificanceLevel=0.05 
@@ -553,20 +535,27 @@ sgd = SGDClassifier(loss="hinge", early_stopping=True) #early stopping to termin
 
 ################################### Logistic regression ################################################
 from sklearn.linear_model import LogisticRegression
-#LR mit unserer Featureselection und oversampling
 
-clf_LR = LogisticRegression(multi_class='multinomial', solver='saga')
-clf_LR.fit(X_train, y_train)
+#scaling the data
+sc=StandardScaler()
+X_train_org=sc.fit_transform(X_train_org)
+X_test_org=sc.transform(X_test_org)
+
+           
+#LR mit original Dataset
+clf_LR = LogisticRegression(random_state=1)
+clf_LR.fit(X_train_org, y_train_org)
+
+#LR mit FS und class balancing
+clf_LR_FS_OUS = LogisticRegression(random_state=1)
+clf_LR_FS_OUS.fit(X_train_sc, y_train_sc)
 
 #LR mit den vorhandenen Funktionen
+clf2_LR = LogisticRegression(multi_class='multinomial', solver='saga', C=0.5, penalty='l1', class_weight='balanced')
+clf2_LR.fit(X_train_org, y_train_org)
 
-X2  = df_cleaned.drop(columns=['Mental_health_status'])
-Y2  = df_cleaned['Mental_health_status']
-
-X2_train, X2_test, y2_train, y2_test = train_test_split(X2, Y2, test_size=0.2, random_state=1)
-
-clf2_LR = LogisticRegression(multi_class='multinomial', solver='saga', max_iter=200, penalty='l1', class_weight='balanced')
-clf2_LR.fit(X2_train, y2_train)
+clf3_LR = LogisticRegression(multi_class='ovr', solver='saga', C=0.5, penalty='l1', class_weight='balanced')
+clf3_LR.fit(X_train_org, y_train_org)
  
 ###################################  Random Forest #######################################################
 from sklearn.ensemble import RandomForestClassifier
@@ -647,10 +636,17 @@ df_performance.loc['RF (test)',:] = eval_Performance(y_test, X_test, best_rf, cl
 df_performance.loc['RF (train)',:] = eval_Performance(y_train, X_train, best_rf, clf_name='Random Forest (train)')
 
 #Logisitc Regression
-df_performance.loc['LR (test)',:] = eval_Performance(y_test, X_test, clf_LR, clf_name = 'LR')
-df_performance.loc['LR (train)',:] = eval_Performance(y_train, X_train, clf_LR, clf_name = 'LR (train)')
-df_performance.loc['LR2 (test)',:] = eval_Performance(y2_test, X2_test, clf2_LR, clf_name = 'LR2')
-df_performance.loc['LR2 (train)',:] = eval_Performance(y2_train, X2_train, clf2_LR, clf_name = 'LR2 (train)')
+df_performance.loc['LR (test)',:] = eval_Performance(y_test_org, X_test_org, clf_LR, clf_name = 'LR')
+df_performance.loc['LR (train)',:] = eval_Performance(y_train_org, X_train_org, clf_LR, clf_name = 'LR (train)')
+
+df_performance.loc['LR (test, FS, OUS)',:] = eval_Performance(y_test, X_test, clf_LR_FS_OUS, clf_name = 'LR_FS_OUS')
+df_performance.loc['LR (train, FS, OUS)',:] = eval_Performance(y_train, X_train, clf_LR_FS_OUS, clf_name = 'LR_FS_OUS (train)')
+
+df_performance.loc['LR2 (test)',:] = eval_Performance(y_test_org, X_test_org, clf2_LR, clf_name = 'LR2')
+df_performance.loc['LR2 (train)',:] = eval_Performance(y_train_org, X_train_org, clf2_LR, clf_name = 'LR2 (train)')
+
+df_performance.loc['LR3 (test)',:] = eval_Performance(y_test_org, X_test_org, clf3_LR, clf_name = 'LR3')
+df_performance.loc['LR3 (train)',:] = eval_Performance(y_train_org, X_train_org, clf3_LR, clf_name = 'LR3 (train)')
 
 #Knearest Neighbors
 df_performance.loc['KNN (test)',:]= eval_Performance(y_test, X_test_pca,knn,clf_name="K-nearest neighbor")
