@@ -372,6 +372,8 @@ def randomundersampling(x,y,sampstrat):
     x_resampled, y_resampled = undersampler.fit_resample(x, y)
     return x_resampled, y_resampled
 
+X_train_ws, y_train_ws=X_train,y_train
+
 d={0.0 : y_train.value_counts()[0.0], 1.0:20000, 2.0:18000, 3.0:19000}
 x_resampled, y_resampled=randomoversampling(X_train, y_train, d) #majority class bleibt gleich nur alle anderen werden mehr
 X_train, y_train=randomundersampling(x_resampled, y_resampled, "auto") #bisschen was von majority class wird von 28746 auf etwa 17500 reduziert
@@ -449,7 +451,7 @@ def polynomcountsk(X_train, y_train, X_test, y_test):
         for i in range(n_runs):
             pipeline = make_pipeline(    
                 PolynomialCountSketch(n_components=n, degree=4),
-                SGDClassifier(loss="hinge", penalty="l2", max_iter=5)
+                SGDClassifier(loss="hinge", penalty="l2", max_iter=5, class_weight='balanced')
             )
             pipeline.fit(X_train, y_train)
             accuracysum += pipeline.score(X_test, y_test)
@@ -485,7 +487,7 @@ def scoring(y_true, y_pred):
 
 #scaling the data
 sc=StandardScaler()
-X_train_sc=sc.fit_transform(X_train)
+X_train_sc=sc.fit_transform(X_train_ws)
 X_test_sc=sc.transform(X_test)
 
 
@@ -499,7 +501,7 @@ param_grid = {
 sgd=SGDClassifier(loss="hinge", class_weight='balanced')
 
 print("linear SVM")
-df_performance.loc['Linear SVM test',:],df_performance.loc['Linear SVM train',:]=model(X_train_sc, y_train, X_test_sc, y_test, param_grid, sgd, 0)
+df_performance.loc['Linear SVM test',:],df_performance.loc['Linear SVM train',:]=model(X_train_sc, y_train_ws, X_test_sc, y_test, param_grid, sgd, 0)
 
 
 #Nystroem aprox with hyperparameter tuning for SGD
@@ -511,7 +513,7 @@ param_grid = {
 }
 sgd = SGDClassifier(loss="hinge", class_weight='balanced') #early stopping to terminate training when validation score is not improving hängt zusammen it max_iter
 print("Nystroem (rbf) SVM")
-df_performance.loc['Nystoem (rbf) SVM test',:],df_performance.loc['Nystoem (rbf) SVM  train',:]=model(X_train_sc, y_train, X_test_sc, y_test, param_grid, sgd, nystroem)
+df_performance.loc['Nystoem (rbf) SVM test',:],df_performance.loc['Nystoem (rbf) SVM  train',:]=model(X_train_sc, y_train_ws, X_test_sc, y_test, param_grid, sgd, nystroem)
 #Best model parameters: {'alpha': 0.0001, 'max_iter': 1000, 'penalty': 'l2'}
 #Model accuracy: 0.7250470809792844
 #etwa 4 min
@@ -525,7 +527,7 @@ param_grid = {
 }
 sgd = SGDClassifier(loss="hinge") #early stopping to terminate training when validation score is not improving hängt zusammen it max_iter
 print("RBF Sampler SVM")
-df_performance.loc['RBF Sampler SVM test',:],df_performance.loc['RBF Sampler SVM train',:]=model(X_train_sc, y_train, X_test_sc, y_test, param_grid, sgd, kernelaprox)
+df_performance.loc['RBF Sampler SVM test',:],df_performance.loc['RBF Sampler SVM train',:]=model(X_train_sc, y_train_ws, X_test_sc, y_test, param_grid, sgd, kernelaprox)
 
 #model(X_train_sc, y_train, X_test_sc, y_test, kernelaprox, param_grid, sgd)
 #Best model parameters: {'alpha': 0.0001, 'max_iter': 1000, 'penalty': 'l2'}
@@ -534,7 +536,7 @@ df_performance.loc['RBF Sampler SVM test',:],df_performance.loc['RBF Sampler SVM
 
 #kernelaproximation with polynominal count sketch (without hyperparameter tuning)
 print("Polynominal SVM")
-polynomcountsk(X_train_sc, y_train, X_test_sc, y_test)
+polynomcountsk(X_train_sc, y_train_ws, X_test_sc, y_test)
 #Accuracy for 150 components: 0.30018832391713746
 #Accuracy for 250 components: 0.29279661016949154
 #Accuracy for 500 components: 0.3126647834274953
