@@ -490,8 +490,10 @@ def scoring(y_true, y_pred):
 
 #scaling the data
 sc=StandardScaler()
-X_train_sc=sc.fit_transform(X_train_ws)
+X_train_sc_ws=sc.fit_transform(X_train_ws) #without sampling
+X_train_sc=sc.fit_transform(X_train #with sampling
 X_test_sc=sc.transform(X_test)
+
 
 
 #linear SVM
@@ -504,7 +506,7 @@ param_grid = {
 sgd=SGDClassifier(loss="hinge", class_weight='balanced')
 
 print("linear SVM")
-df_performance.loc['Linear SVM test',:],df_performance.loc['Linear SVM train',:]=model(X_train_sc, y_train_ws, X_test_sc, y_test, param_grid, sgd, 0)
+df_performance.loc['Linear SVM test',:],df_performance.loc['Linear SVM train',:]=model(X_train_sc_ws, y_train_ws, X_test_sc, y_test, param_grid, sgd, 0)
 
 
 #Nystroem aprox with hyperparameter tuning for SGD
@@ -516,7 +518,7 @@ param_grid = {
 }
 sgd = SGDClassifier(loss="hinge", class_weight='balanced') #early stopping to terminate training when validation score is not improving hängt zusammen it max_iter
 print("Nystroem (rbf) SVM")
-df_performance.loc['Nystoem (rbf) SVM test',:],df_performance.loc['Nystoem (rbf) SVM  train',:]=model(X_train_sc, y_train_ws, X_test_sc, y_test, param_grid, sgd, nystroem)
+df_performance.loc['Nystoem (rbf) SVM test',:],df_performance.loc['Nystoem (rbf) SVM  train',:]=model(X_train_sc_ws, y_train_ws, X_test_sc, y_test, param_grid, sgd, nystroem)
 #Best model parameters: {'alpha': 0.0001, 'max_iter': 1000, 'penalty': 'l2'}
 #Model accuracy: 0.7250470809792844
 #etwa 4 min
@@ -530,7 +532,7 @@ param_grid = {
 }
 sgd = SGDClassifier(loss="hinge") #early stopping to terminate training when validation score is not improving hängt zusammen it max_iter
 print("RBF Sampler SVM")
-df_performance.loc['RBF Sampler SVM test',:],df_performance.loc['RBF Sampler SVM train',:]=model(X_train_sc, y_train_ws, X_test_sc, y_test, param_grid, sgd, kernelaprox)
+df_performance.loc['RBF Sampler SVM test',:],df_performance.loc['RBF Sampler SVM train',:]=model(X_train_sc_ws, y_train_ws, X_test_sc, y_test, param_grid, sgd, kernelaprox)
 
 #model(X_train_sc, y_train, X_test_sc, y_test, kernelaprox, param_grid, sgd)
 #Best model parameters: {'alpha': 0.0001, 'max_iter': 1000, 'penalty': 'l2'}
@@ -539,7 +541,7 @@ df_performance.loc['RBF Sampler SVM test',:],df_performance.loc['RBF Sampler SVM
 
 #kernelaproximation with polynominal count sketch (without hyperparameter tuning)
 print("Polynominal SVM")
-polynomcountsk(X_train_sc, y_train_ws, X_test_sc, y_test)
+polynomcountsk(X_train_sc_ws, y_train_ws, X_test_sc, y_test)
 #Accuracy for 150 components: 0.30018832391713746
 #Accuracy for 250 components: 0.29279661016949154
 #Accuracy for 500 components: 0.3126647834274953
