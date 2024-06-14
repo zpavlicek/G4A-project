@@ -648,8 +648,8 @@ df_performance.loc['LR3 (test)',:] = eval_Performance(y_test_org, X_test_org, cl
 df_performance.loc['LR3 (train)',:] = eval_Performance(y_train_org, X_train_org, clf3_LR, clf_name = 'LR3 (train)')
 
 #Knearest Neighbors
-df_performance.loc['KNN (test)',:]= eval_Performance(y_test, X_test_pca,knn,clf_name="K-nearest neighbor")
-df_performance.loc['KNN (train)',:] = eval_Performance(y_train, X_train_pca,knn,clf_name="K-nearest neighbor (train)")
+df_performance.loc['KNN (test)',:]= eval_Performance(y_test, X_test_pca,best_knn,clf_name="K-nearest neighbor")
+df_performance.loc['KNN (train)',:] = eval_Performance(y_train, X_train_pca,best_knn,clf_name="K-nearest neighbor (train)")
 
 print(df_performance)
 
