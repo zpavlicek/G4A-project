@@ -445,22 +445,6 @@ from sklearn.kernel_approximation import Nystroem, RBFSampler, PolynomialCountSk
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score
 
-def polynomcountsk(X_train, y_train, X_test, y_test):
-    n_runs=5
-    N_COMPONENTS = [150, 250, 500] #larger than the number of features --> larger than 100
-
-    for n in N_COMPONENTS:
-        accuracysum = 0
-        for i in range(n_runs):
-            pipeline = make_pipeline(    
-                PolynomialCountSketch(n_components=n, degree=4),
-                SGDClassifier(loss="hinge", penalty="l2", max_iter=5, class_weight='balanced')
-            )
-            pipeline.fit(X_train, y_train)
-            accuracysum += pipeline.score(X_test, y_test)
-        accuracy=accuracysum/n_runs #mean of accuracy over runs
-        print(f"Accuracy for {n} components: {accuracy}") #very bad accuracy for polynominal kernal aproximation between 27-36 % depending on dimension
-
 def model(X_train, y_train, X_test, y_test, param_grid, ml, kernelaprox):
     if kernelaprox != 0:
         X_train = kernelaprox.fit_transform(X_train)
@@ -478,21 +462,23 @@ def model(X_train, y_train, X_test, y_test, param_grid, ml, kernelaprox):
     
 
     print("Best model parameters:", grid_search.best_params_)
-    print("Average of Acc,Pre:", grid_search.score(X_test, y_test))
-    print("Average of Acc,Pre:", grid_search.score(X_train, y_train))
+    print("Average of Acc,Pre,f1:", grid_search.score(X_test, y_test))
+    print("Average of Acc,Pre,f1:", grid_search.score(X_train, y_train))
     
     return eval_Performance(y_test, X_test, best_model, clf_name='SGD Classifier with {kernelaprox} kernel aproximation'), eval_Performance(y_train, X_train, best_model, clf_name='SGD Classifier with {kernelaprox} kernel aproximation')
 
 def scoring(y_true, y_pred):
     accuracy = accuracy_score(y_true, y_pred)
     precision = precision_score(y_true, y_pred, average='weighted')
-    return (accuracy+precision)/2
+    f1 = f1_score(y_true, y_pred, average='weighted')
+    return (accuracy+precision+f1)/3
 
 #scaling the data
 sc=StandardScaler()
 X_train_sc_ws=sc.fit_transform(X_train_ws) #without sampling
-X_train_sc=sc.fit_transform(X_train #with sampling
+X_train_sc=sc.fit_transform(X_train) #with sampling
 X_test_sc=sc.transform(X_test)
+#pca machts viel schlimmer
 
 
 
@@ -510,7 +496,7 @@ df_performance.loc['Linear SVM test',:],df_performance.loc['Linear SVM train',:]
 
 
 #Nystroem aprox with hyperparameter tuning for SGD
-nystroem = Nystroem(kernel= 'rbf', random_state=1, n_components=1000) #n_components=n_features
+nystroem = Nystroem(kernel= 'rbf', random_state=1, n_components=100) #n_components=n_features
 param_grid = {
     'alpha': [0.000001, 0.00001, 0.0001, 0.001],
     'max_iter': [2750, 3000, 3500, 4000, 5000],
@@ -524,7 +510,7 @@ df_performance.loc['Nystoem (rbf) SVM test',:],df_performance.loc['Nystoem (rbf)
 #etwa 4 min
 
 #RBF aprox with hyperparameter tuning for SGD
-kernelaprox=RBFSampler(random_state=1, n_components=100, gamma='scale') 
+kernelaprox=RBFSampler(random_state=1, gamma='scale', n_components=100) 
 param_grid = {
     'alpha': [0.000001, 0.00001, 0.0001, 0.001],
     'max_iter': [2750, 3000, 3500, 4000, 5000],
@@ -534,17 +520,19 @@ sgd = SGDClassifier(loss="hinge") #early stopping to terminate training when val
 print("RBF Sampler SVM")
 df_performance.loc['RBF Sampler SVM test',:],df_performance.loc['RBF Sampler SVM train',:]=model(X_train_sc_ws, y_train_ws, X_test_sc, y_test, param_grid, sgd, kernelaprox)
 
-#model(X_train_sc, y_train, X_test_sc, y_test, kernelaprox, param_grid, sgd)
-#Best model parameters: {'alpha': 0.0001, 'max_iter': 1000, 'penalty': 'l2'}
-#Model accuracy: 0.5065913370998116
-# etwa 2 Minuten
+#Nystroem aprox with hyperparameter tuning for SGD
+degree=[2,3,4]
+for n in degree:
+    nystroem = Nystroem(kernel= 'poly', random_state=1, degree=n, n_components=100) #n_components=n_features
+    param_grid = {
+        'alpha': [0.000001, 0.00001, 0.0001, 0.001],
+        'max_iter': [2750, 3000, 3500, 4000, 5000],
+        'penalty': ['l2']
+    }
+    sgd = SGDClassifier(loss="hinge", class_weight='balanced') #early stopping to terminate training when validation score is not improving hängt zusammen it max_iter
+    print(f'Nystroem (poly{n}) SVM')
+    df_performance.loc[f'Nystoem (poly{n}) SVM test',:],df_performance.loc[f'Nystoem (poly{n}) SVM  train',:]=model(X_train_sc_ws, y_train_ws, X_test_sc, y_test, param_grid, sgd, nystroem)
 
-#kernelaproximation with polynominal count sketch (without hyperparameter tuning)
-print("Polynominal SVM")
-polynomcountsk(X_train_sc_ws, y_train_ws, X_test_sc, y_test)
-#Accuracy for 150 components: 0.30018832391713746
-#Accuracy for 250 components: 0.29279661016949154
-#Accuracy for 500 components: 0.3126647834274953
 
 print(df_performance)
 
