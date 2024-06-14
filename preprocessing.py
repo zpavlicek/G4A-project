@@ -572,54 +572,38 @@ clf3_LR.fit(X_train_org, y_train_org)
  
 ###################################  Random Forest #######################################################
 from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBRFClassifier
 
 #hyperparameter tuning with randomSearchCV
 param_distributions = {
-    'n_estimators': [100, 200, 300, 400, 500],
-    'max_depth': [10, 20, 30, 40, 50, None],
+    'n_estimators': [200, 300, 400, 500],
+    'max_depth': [20, 30, 40, 50, None],
     'min_samples_split': [2, 5, 10],
     'min_samples_leaf': [1, 2, 4],
-    'max_features': ['auto', 'sqrt', 'log2'],
-    'bootstrap': [True, False]
+    'max_features': ['sqrt', 'log2'],
+    'bootstrap': [True],
+    'max_leaf_nodes': [10, 50, 100, 200, 300, 400, 500]
 }
 
-'''param_distributions = {
-    'n_estimators': [100, 200, 300, 400, 500],
-    'max_depth': [3, 5, 7, 10],
-    'learning_rate': [0.01, 0.05, 0.1, 1],
-    'subsample': [0.6, 0.8, 1.0],
-    'colsample_bynode': [0.6, 0.8, 1.0],
-    'reg_alpha': [0, 0.01, 0.1],
-    'reg_lambda': [1, 1.5, 2],
-}'''
-
 clf_RF = RandomForestClassifier(random_state=0)
-'''xgb_model = XGBRFClassifier(random_state=0, use_label_encoder = False, eval_metric = 'mlogloss', tree_method = 'gpu_hist') #nur für NVIDIA GPUS
-'''
+
 random_search = RandomizedSearchCV(
     estimator=clf_RF,
     param_distributions=param_distributions,
     cv=skf,
-    n_iter=10,
-    random_state=0,
+    n_iter=20,
+    random_state=0, 
     n_jobs=-1, #use als CPU-Cores
     verbose=1, # minimal output
-    scoring = "accuracy"
+    scoring ='accuracy',
 )
 
 random_search.fit(X_train, y_train)
 best_params = random_search.best_params_
 print(f"Best parameters found: {best_params}")
 
-best_rf = random_search.best_estimator_
+best_rf = RandomForestClassifier(**best_params, random_state=0, n_jobs=-1)
 best_rf.fit(X_train, y_train)
 
-
-"""y_pred = best_rf.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-print(f"Accuracy: {accuracy}")
-"""
 ##################################### K-nearest neighbour ##############################################################
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
