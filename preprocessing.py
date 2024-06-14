@@ -387,7 +387,7 @@ category_mapping = {
     2.0: 'Moderate MI',
     3.0: 'Serious MI'
 }
-fig3= sns.countplot( x=y_resampled)
+fig3= sns.countplot( x=y_train)
 fig3.set_xticklabels([category_mapping[float(label.get_text())] for label in fig3.get_xticklabels()])
 #plt.xticks(rotation=45)
 plt.xlabel('Mental Health Status balanced')
