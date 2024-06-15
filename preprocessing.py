@@ -599,24 +599,25 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 
+sum_sam = df_cleaned.value_counts().sum()
+
 pca = PCA(n_components=0.95) 
 X_train_pca = pca.fit_transform(X_train_sc)
 X_test_pca = pca.transform(X_test_sc)
 
-para_grid = {'n_neighbors': np.arange(1, 51)}
+para_grid = np.arange(1,sum_sam+1)
+best_knn = 0
+score = 0 
+for i in para_grid:
+    knn = KNeighborsClassifier(n_neighbors=i)
+    knn.fit(X_train_pca, y_train)
+    y_pred = knn.predict(X_test_pca)
+    x = scoring(y_test, y_pred)
+    if x > score:
+        score = x
+        best_knn = i 
+print("best knn =", best_knn, "best score: ",score)
 
-knn = KNeighborsClassifier()
-
-grid_search= GridSearchCV(knn, para_grid, cv=n_splits)
-grid_search.fit(X_train_pca, y_train)
-
-print(f'Best n_neighbors: {grid_search.best_params_["n_neighbors"]}')
-
-best_knn = grid_search.best_estimator_
-'''
-knn = KNeighborsClassifier(n_neighbors=50)
-knn.fit(X_train_sc, y_train)
-'''
 ################################### Analysis Performance Metrics #######################################################
 #Random Forest
 df_performance.loc['RF (test)',:] = eval_Performance(y_test, X_test, best_rf, clf_name='Random Forest')
