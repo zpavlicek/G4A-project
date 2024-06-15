@@ -619,6 +619,8 @@ for i in para_grid:
         best_knn = i 
 print("best k =", best_knn, "best score: ",score)
 
+best_knn = KNeighborsClassifier(n_neighbors=best_k)
+best_knn.fit(X_train_pca, y_train)
 ################################### Analysis Performance Metrics #######################################################
 #Random Forest
 df_performance.loc['RF (test)',:] = eval_Performance(y_test, X_test, best_rf, clf_name='Random Forest')
