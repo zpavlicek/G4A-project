@@ -600,12 +600,13 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 
 sum_sam = df_cleaned.value_counts().sum()
+k_max = int(np.sqrt(sum_sam))
 
 pca = PCA(n_components=0.95) 
 X_train_pca = pca.fit_transform(X_train_sc)
 X_test_pca = pca.transform(X_test_sc)
 
-para_grid = np.arange(1,sum_sam+1)
+para_grid = np.arange(1,k_max+1)
 best_knn = 0
 score = 0 
 for i in para_grid:
