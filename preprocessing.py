@@ -616,7 +616,7 @@ for i in para_grid:
     if x > score:
         score = x
         best_knn = i 
-print("best knn =", best_knn, "best score: ",score)
+print("best k =", best_knn, "best score: ",score)
 
 ################################### Analysis Performance Metrics #######################################################
 #Random Forest
