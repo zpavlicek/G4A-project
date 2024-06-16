@@ -543,22 +543,25 @@ from sklearn.linear_model import LogisticRegression
 sc=StandardScaler()
 X_train_org=sc.fit_transform(X_train_org)
 X_test_org=sc.transform(X_test_org)
+   
+#LR with original dataset
+clf1_LR = LogisticRegression(random_state=1)
+clf1_LR.fit(X_train_org, y_train_org)
 
-           
-#LR mit original Dataset
-clf_LR = LogisticRegression(random_state=1)
-clf_LR.fit(X_train_org, y_train_org)
+#LR with FS and class balancing
+clf_LR_FS_OUS = LogisticRegression()
+clf_LR_FS_OUS.fit(X_train_sc, y_train)
 
-#LR mit FS und class balancing
-clf_LR_FS_OUS = LogisticRegression(random_state=1)
-clf_LR_FS_OUS.fit(X_train_sc, y_train_sc)
+#LR with FS and classweight='balanced
+clf_LR_FS=LogisticRegression(class_weight='balanced')
+clf_LR_FS.fit(X_train_sc_ws, y_train_ws)
 
-#LR mit den vorhandenen Funktionen
-clf2_LR = LogisticRegression(multi_class='multinomial', solver='saga', C=0.5, penalty='l1', class_weight='balanced')
-clf2_LR.fit(X_train_org, y_train_org)
+#LR with sklearn functions
+clf_LR_Multi = LogisticRegression(multi_class='multinomial', solver='saga', C=0.5, penalty='l1', class_weight='balanced')
+clf_LR_Multi.fit(X_train_org, y_train_org)
 
-clf3_LR = LogisticRegression(multi_class='ovr', solver='saga', C=0.5, penalty='l1', class_weight='balanced')
-clf3_LR.fit(X_train_org, y_train_org)
+clf_LR_OVR = LogisticRegression(multi_class='ovr', solver='saga', C=0.5, penalty='l1', class_weight='balanced')
+clf_LR_OVR.fit(X_train_org, y_train_org)
  
 ###################################  Random Forest #######################################################
 from sklearn.ensemble import RandomForestClassifier
@@ -637,17 +640,20 @@ df_performance.loc['RF (test), with bal',:] = eval_Performance(y_test, X_test, b
 df_performance.loc['RF (train), with bal',:] = eval_Performance(y_train_wsam, X_train_wsam, best_rf, clf_name='Random Forest (train), with bal')
 
 #Logisitc Regression
-df_performance.loc['LR (test)',:] = eval_Performance(y_test_org, X_test_org, clf_LR, clf_name = 'LR')
-df_performance.loc['LR (train)',:] = eval_Performance(y_train_org, X_train_org, clf_LR, clf_name = 'LR (train)')
+df_performance.loc['LR (test)',:] = eval_Performance(y_test_org, X_test_org, clf1_LR, clf_name = 'LR')
+df_performance.loc['LR (train)',:] = eval_Performance(y_train_org, X_train_org, clf1_LR, clf_name = 'LR (train)')
 
-df_performance.loc['LR (test, FS, OUS)',:] = eval_Performance(y_test_sc, X_test_sc, clf_LR_FS_OUS, clf_name = 'LR_FS_OUS')
-df_performance.loc['LR (train, FS, OUS)',:] = eval_Performance(y_train_sc, X_train_sc, clf_LR_FS_OUS, clf_name = 'LR_FS_OUS (train)')
+df_performance.loc['LR (test, FS, OUS)',:] = eval_Performance(y_test, X_test_sc, clf_LR_FS_OUS, clf_name = 'LR_FS_OUS')
+df_performance.loc['LR (train, FS, OUS)',:] = eval_Performance(y_train, X_train_sc, clf_LR_FS_OUS, clf_name = 'LR_FS_OUS (train)')
 
-df_performance.loc['LR2 (test)',:] = eval_Performance(y_test_org, X_test_org, clf2_LR, clf_name = 'LR2')
-df_performance.loc['LR2 (train)',:] = eval_Performance(y_train_org, X_train_org, clf2_LR, clf_name = 'LR2 (train)')
+df_performance.loc['LR (test, FS)',:] = eval_Performance(y_test, X_test_sc, clf_LR_FS, clf_name = 'LR_FS')
+df_performance.loc['LR (train, FS)',:] = eval_Performance(y_train_ws, X_train_sc_ws, clf_LR_FS, clf_name = 'LR_FS (train)')
 
-df_performance.loc['LR3 (test)',:] = eval_Performance(y_test_org, X_test_org, clf3_LR, clf_name = 'LR3')
-df_performance.loc['LR3 (train)',:] = eval_Performance(y_train_org, X_train_org, clf3_LR, clf_name = 'LR3 (train)')
+df_performance.loc['LR (test, HP, multi)',:] = eval_Performance(y_test_org, X_test_org, clf_LR_Multi, clf_name = 'LR_Multi')
+df_performance.loc['LR (train, HP, multi)',:] = eval_Performance(y_train_org, X_train_org, clf_LR_Multi, clf_name = 'LR_Multi (train)')
+
+df_performance.loc['LR (test, HP, OVR)',:] = eval_Performance(y_test_org, X_test_org, clf_LR_OVR, clf_name = 'LR_OVR')
+df_performance.loc['LR (train, HP, OVR)',:] = eval_Performance(y_train_org, X_train_org, clf_LR_OVR, clf_name = 'LR_OVR (train)')
 
 #Knearest Neighbors
 df_performance.loc['KNN (test)',:]= eval_Performance(y_test, X_test_pca,best_knn,clf_name="K-nearest neighbor")
