@@ -571,28 +571,38 @@ param_distributions = {
     'min_samples_leaf': [1, 2, 4],
     'max_features': ['sqrt', 'log2'],
     'bootstrap': [True],
-    'max_leaf_nodes': [10, 50, 100, 200, 300, 400, 500]
+    'max_leaf_nodes': [800, 900, 1000, 1100, 1200]
 }
 
+scorer=make_scorer(scoring)
 clf_RF = RandomForestClassifier(random_state=0)
+clf_RF_ws = RandomForestClassifier(random_state=0, class_weight='balanced')
 
-random_search = RandomizedSearchCV(
-    estimator=clf_RF,
-    param_distributions=param_distributions,
-    cv=skf,
-    n_iter=20,
-    random_state=0, 
-    n_jobs=-1, #use als CPU-Cores
-    verbose=1, # minimal output
-    scoring ='accuracy',
-)
+def search(clf_RF):
+    random_search = RandomizedSearchCV(
+        estimator=clf_RF,
+        param_distributions=param_distributions,
+        cv=skf,
+        n_iter=20,
+        random_state=0, 
+        n_jobs=-1, #use als CPU-Cores
+        verbose=1, # minimal output
+        scoring='accuracy'
+    )
+    return random_search
 
-random_search.fit(X_train, y_train)
-best_params = random_search.best_params_
-print(f"Best parameters found: {best_params}")
+def rf(X_train, y_train, clf_RF):
+    random_search = search(clf_RF)
+    random_search.fit(X_train, y_train)
+    best_params = random_search.best_params_
+    return X_train, y_train, best_params
 
-best_rf = RandomForestClassifier(**best_params, random_state=0, n_jobs=-1)
-best_rf.fit(X_train, y_train)
+X_train_wsam, y_train_wsam, best_params_wsam = rf(X_train, y_train, clf_RF)
+
+best_rf = RandomForestClassifier(**best_params_wsam, random_state=0, n_jobs=-1)
+best_rf.fit(X_train_wsam, y_train_wsam)
+
+print(f"Best parameters found (wsam): {best_params_wsam}")
 
 ##################################### K-nearest neighbour ##############################################################
 from sklearn.decomposition import PCA
@@ -623,8 +633,8 @@ best_knn = KNeighborsClassifier(n_neighbors=best_k)
 best_knn.fit(X_train_pca, y_train)
 ################################### Analysis Performance Metrics #######################################################
 #Random Forest
-df_performance.loc['RF (test)',:] = eval_Performance(y_test, X_test, best_rf, clf_name='Random Forest')
-df_performance.loc['RF (train)',:] = eval_Performance(y_train, X_train, best_rf, clf_name='Random Forest (train)')
+df_performance.loc['RF (test), with bal',:] = eval_Performance(y_test, X_test, best_rf, clf_name='Random Forest, with bal')
+df_performance.loc['RF (train), with bal',:] = eval_Performance(y_train_wsam, X_train_wsam, best_rf, clf_name='Random Forest (train), with bal')
 
 #Logisitc Regression
 df_performance.loc['LR (test)',:] = eval_Performance(y_test_org, X_test_org, clf_LR, clf_name = 'LR')
