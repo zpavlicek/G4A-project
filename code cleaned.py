@@ -331,7 +331,7 @@ def model(X_train, y_train, X_test, y_test, param_grid, ml, kernelaprox):
 
 def scoring(y_true, y_pred):
     accuracy = accuracy_score(y_true, y_pred)
-    precision = precision_score(y_true, y_pred, average='weighted')
+    precision = precision_score(y_true, y_pred, average='weighted', zero_division=0)
     f1 = f1_score(y_true, y_pred, average='weighted')
     return (accuracy+precision+f1)/3
 
