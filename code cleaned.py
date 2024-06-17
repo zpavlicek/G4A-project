@@ -50,7 +50,7 @@ def clean_data(data):
         'NDTRNTSPHR', 'NDTRNWANTD', 'NDTRNNSTOP', 'NDTRNPFULL', 'NDTRNDKWHR', 'NDTRNNBRNG', 'NDTRNJOBNG', 'NDTRNNONED', 'NDTRNHANDL',
         'NDTRNNOHLP', 'NDTRNNTIME', 'NDTRNFNDOU', 'NDTRNMIMPT', 'UADCAR', 'UADHOME', 'UADOTHM', 'UADPUBL', 'UADBAR', 'UADEVNT',
         'UADSCHL', 'UADROTH', 'UADPAID', 'UADMONY', 'UADBWHO', 'CADRKMARJ2', 'CADRKCOCN2', 'CADRKHERN2', 'CADRKHALL2', 'CADRKINHL2',
-        'CASUPROB2', 'RCVYSUBPRB', 'RCVYMHPRB', 'ALMEDYR2', 'OPMEDYR2', 'ALOPMEDYR', 'KRATFLG', 'KRATYR', 'KRATMON', 'SRCTRQNM2' 
+        'CASUPROB2', 'RCVYSUBPRB', 'ALMEDYR2', 'OPMEDYR2', 'ALOPMEDYR', 'KRATFLG', 'KRATYR', 'KRATMON', 'SRCTRQNM2' 
     ]] = df_new[[
         'CIGAVGD', 'CIGAVGM', 'ALCNUMDKPM', 'SRCPNRNM2', 'SRCSTMNM2', 'SRCSEDNM2', 'SRCFRPNRNM', 'SRCFRTRQNM', 
         'SRCFRSTMNM', 'SRCFRSEDNM', 'SRCCLFRPNR', 'SRCCLFRTRQ', 'SRCCLFRSTM', 'SRCCLFRSED', 'GRSKCIGPKD', 'GRSKMRJMON', 
@@ -59,7 +59,7 @@ def clean_data(data):
         'NDTRNTSPHR', 'NDTRNWANTD', 'NDTRNNSTOP', 'NDTRNPFULL', 'NDTRNDKWHR', 'NDTRNNBRNG', 'NDTRNJOBNG', 'NDTRNNONED', 'NDTRNHANDL',
         'NDTRNNOHLP', 'NDTRNNTIME', 'NDTRNFNDOU', 'NDTRNMIMPT', 'UADCAR', 'UADHOME', 'UADOTHM', 'UADPUBL', 'UADBAR', 'UADEVNT',
         'UADSCHL', 'UADROTH', 'UADPAID', 'UADMONY', 'UADBWHO', 'CADRKMARJ2', 'CADRKCOCN2', 'CADRKHERN2', 'CADRKHALL2', 'CADRKINHL2',
-        'CASUPROB2', 'RCVYSUBPRB', 'RCVYMHPRB', 'ALMEDYR2', 'OPMEDYR2', 'ALOPMEDYR', 'KRATFLG', 'KRATYR', 'KRATMON', 'SRCTRQNM2'
+        'CASUPROB2', 'RCVYSUBPRB', 'ALMEDYR2', 'OPMEDYR2', 'ALOPMEDYR', 'KRATFLG', 'KRATYR', 'KRATMON', 'SRCTRQNM2'
     ]].fillna(0)
     
     df_new['CIG1PACK']=df_new['CIG1PACK'].fillna(3)
@@ -86,21 +86,19 @@ def clean_data(data):
     print(missing_values_per_column)
 
     num_columns_not_zero = sum([1 for value in missing_values_per_column if value > 0])
-    print("Number of columns with missing values:", num_columns_not_zero) #100 von 1756 Spalten enthalten leere Zeilen 
+    print("Number of columns with missing values:", num_columns_not_zero) 
     df_cleaned=df_cleaned.dropna(subset=['CADRKMETH2'])
     
     print('Are there still missing values:', df_cleaned.isna().any().any()) 
     print('+++++Shape finales Dataset+++++')
-    print(df_cleaned.shape) #(42739, 1632) verbliebenes Dataset davor (56136, 1756): 13397 rows and 124 columns deleted
+    print(df_cleaned.shape) 
 
     return df_cleaned
 
 def replace_data(data_name):
     data_name[['HALLUCEVR', 'INHALEVER', 'CRKEVER', 'PNRNMLIF', 'TRQNMLIF', 'STMNMLIF', 'SEDNMLIF']]=data_name[['HALLUCEVR', 'INHALEVER', 'CRKEVER', 'PNRNMLIF', 'TRQNMLIF', 'STMNMLIF', 'SEDNMLIF']].replace(91,2)
     data_name[['PNRANYLIF', 'TRQANYLIF', 'STMANYLIF', 'SEDANYLIF','PNRNMLIF', 'TRQNMLIF', 'STMNMLIF', 'SEDNMLIF']]=data_name[['PNRANYLIF', 'TRQANYLIF', 'STMANYLIF', 'SEDANYLIF','PNRNMLIF', 'TRQNMLIF', 'STMNMLIF', 'SEDNMLIF']].replace(5,1)
-    #data_name[['NDFLTXILAL', 'NDFLTXILL', 'NDFLTXALC', 'UADCAR', 'UADHOME', 'UADOTHM', 'UADPUBL', 'UADBAR', 'UADEVNT', 'UADSCHL', 'UADROTH']]=data_name[['NDFLTXILAL', 'NDFLTXILL', 'NDFLTXALC', 'UADCAR', 'UADHOME', 'UADOTHM', 'UADPUBL', 'UADBAR', 'UADEVNT', 'UADSCHL', 'UADROTH']].replace(2,0)
-    #data_name[['UADPAID', 'UADMONY', 'UADBWHO']]=data_name[['UADPAID', 'UADMONY', 'UADBWHO']].replace(3,2)
-    #data_name[['UADPAID', 'UADMONY', 'UADBWHO']]=data_name[['UADPAID', 'UADMONY', 'UADBWHO']].replace(2,0)
+
 
 data=pd.read_csv('../data/NSDUH-2019.tsv', sep='\t', index_col=0)
 df_cleaned=clean_data(data)
@@ -110,14 +108,14 @@ df_cleaned=clean_data(data)
 Visualiseren
 **************************************************************************************************************************************
 '''
-#Ob jemals Drogen konsumiert wurden bzw. Abhänigkeit von Drogen
+#ever consumed
 drug_data=data[['CIGEVER','ALCEVER','MJEVER','COCEVER','CRKEVER','HEREVER','HALLUCEVR','INHALEVER','METHAMEVR','PNRANYLIF','TRQANYLIF','STMANYLIF','SEDANYLIF','PNRNMLIF','TRQNMLIF','STMNMLIF','SEDNMLIF']]
 replace_data(drug_data)
 
 melted_drug_data=drug_data.melt(var_name='Column', value_name='Value')
 filtered_drug_data=melted_drug_data[melted_drug_data['Value'].isin([1,2])] 
 
-#Plot allgemein Druge Usage
+#Plot generel Druge Usage
 fig1= sns.histplot(data=filtered_drug_data, x='Column', hue='Value', multiple="stack") #wär hier auch noch cool vielleicht dont know und so zu sehen also vielleicht eher melted_drug_data statt die filtered version
 plt.xticks(rotation=45)
 plt.legend(title='Have you ever used...', labels=['No','Yes']) 
@@ -170,11 +168,11 @@ X_org=X
 Y_org=Y
 
 ################################### Splitting in Test and Train Set ######################################################
-X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=1) # split bei so grossem dataset gebraucht (siehe lesezeichen chrome) #was macht random state hier? wieder 42? checke leider nicht was die zahl genau macht
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=1)
 X_train_org, X_test_org, y_train_org, y_test_org = X_train, X_test, y_train, y_test
 ################################### Cross Validation ######################################################
-#hab ich von HW5 übernommen und auf unseres überführt
-n_splits = 10 #bei so grossem dataset sollte man mehr splits verwenden um overfitting und bias zu vermeiden
+#inspired by Hw 05
+n_splits = 10 
 skf      = StratifiedKFold(n_splits=n_splits, shuffle = True, random_state=0)
 
 mutinfolist = []
@@ -187,8 +185,8 @@ for train_i, test_i in skf.split(X,Y):
 
 
 mutinfomatrix = np.array(mutinfolist) 
-std = np.std(mutinfomatrix, axis=0) #berechnung standardabweichung über folds
-average_mutinfo = np.mean(mutinfomatrix, axis=0) #mean über folds
+std = np.std(mutinfomatrix, axis=0) #standard diviation
+average_mutinfo = np.mean(mutinfomatrix, axis=0) #mean
 
 feature_importance_df = pd.DataFrame({ 
     'Feature': X_train.columns,
@@ -209,7 +207,7 @@ X_test=X_test_selected
 X  = df_cleaned[list(important_features['Feature'])]
 
 
-#plot mit dataframe erstellt
+#plot most important features
 plt.close()
 figure = plt.barh(
     feature_importance_df_top['Feature'], 
@@ -242,12 +240,12 @@ def randomundersampling(x,y,sampstrat):
 X_train_ws, y_train_ws=X_train,y_train
 
 d={0.0 : y_train.value_counts()[0.0], 1.0:20000, 2.0:18000, 3.0:19000}
-x_resampled, y_resampled=randomoversampling(X_train, y_train, d) #majority class bleibt gleich nur alle anderen werden mehr
-X_train, y_train=randomundersampling(x_resampled, y_resampled, "auto") #bisschen was von majority class wird von 28746 auf etwa 17500 reduziert
+x_resampled, y_resampled=randomoversampling(X_train, y_train, d) #majority class stays the same the rest increases
+X_train, y_train=randomundersampling(x_resampled, y_resampled, "auto") #majority class reduced from 28746 to 17500
 
 
 plt.close()
-
+#plotting balanced mental health
 category_mapping = {
     0.0: 'No MI',
     1.0: 'Mild MI',
@@ -256,7 +254,6 @@ category_mapping = {
 }
 fig3= sns.countplot( x=y_train)
 fig3.set_xticklabels([category_mapping[float(label.get_text())] for label in fig3.get_xticklabels()])
-#plt.xticks(rotation=45)
 plt.xlabel('Mental Health Status balanced')
 plt.ylabel('Number of people')
 plt.tight_layout()
@@ -273,9 +270,8 @@ from sklearn.metrics import (accuracy_score, precision_score, recall_score, f1_s
 from sklearn.preprocessing import label_binarize
 
 def eval_Performance(y_eval, X_eval, clf, clf_name='My Classifier'):
-    # Vorhersagen
     y_pred = clf.predict(X_eval)
-    try:
+    try: #needed because of SVM
         y_pred_proba = clf.predict_proba(X_eval)
     except:
         y_pred_proba='none'
@@ -286,7 +282,7 @@ def eval_Performance(y_eval, X_eval, clf, clf_name='My Classifier'):
     recall = recall_score(y_eval, y_pred, average='weighted')
     f1 = f1_score(y_eval, y_pred, average='weighted')
     
-    # ROC AUC für Multiclass
+    # ROC AUC for Multiclass
     y_eval_bin = label_binarize(y_eval, classes=range(len(clf.classes_)))
     try: 
         if y_pred_proba =='none':
@@ -351,26 +347,23 @@ param_grid = {
     'max_iter': [2750, 3000, 3500, 4000, 5000],
     'penalty': ['l2']
 }
-#svc=SVC(class_weight='balanced')
+#linear SVM
 sgd=SGDClassifier(loss="hinge", class_weight='balanced')
-
 print("linear SVM")
 df_performance.loc['Linear SVM test',:],df_performance.loc['Linear SVM train',:]=model(X_train_sc_ws, y_train_ws, X_test_sc, y_test, param_grid, sgd, 0)
 
 
-#Nystroem aprox with hyperparameter tuning for SGD
+#Nystroem aprox SVM with hyperparameter tuning for SGD
 nystroem = Nystroem(kernel= 'rbf', random_state=1, n_components=100) #n_components=n_features
 param_grid = {
     'alpha': [0.000001, 0.00001, 0.0001, 0.001],
     'max_iter': [2750, 3000, 3500, 4000, 5000],
     'penalty': ['l2']
 }
-sgd = SGDClassifier(loss="hinge", class_weight='balanced') #early stopping to terminate training when validation score is not improving hängt zusammen it max_iter
+sgd = SGDClassifier(loss="hinge", class_weight='balanced') 
 print("Nystroem (rbf) SVM")
 df_performance.loc['Nystoem (rbf) SVM test',:],df_performance.loc['Nystoem (rbf) SVM  train',:]=model(X_train_sc_ws, y_train_ws, X_test_sc, y_test, param_grid, sgd, nystroem)
-#Best model parameters: {'alpha': 0.0001, 'max_iter': 1000, 'penalty': 'l2'}
-#Model accuracy: 0.7250470809792844
-#etwa 4 min
+
 
 #RBF aprox with hyperparameter tuning for SGD
 kernelaprox=RBFSampler(random_state=1, gamma='scale', n_components=100) 
@@ -379,7 +372,7 @@ param_grid = {
     'max_iter': [2750, 3000, 3500, 4000, 5000],
     'penalty': ['l2']
 }
-sgd = SGDClassifier(loss="hinge") #early stopping to terminate training when validation score is not improving hängt zusammen it max_iter
+sgd = SGDClassifier(loss="hinge", class_weight='balanced') 
 print("RBF Sampler SVM")
 df_performance.loc['RBF Sampler SVM test',:],df_performance.loc['RBF Sampler SVM train',:]=model(X_train_sc_ws, y_train_ws, X_test_sc, y_test, param_grid, sgd, kernelaprox)
 
@@ -392,7 +385,7 @@ for n in degree:
         'max_iter': [2750, 3000, 3500, 4000, 5000],
         'penalty': ['l2']
     }
-    sgd = SGDClassifier(loss="hinge", class_weight='balanced') #early stopping to terminate training when validation score is not improving hängt zusammen it max_iter
+    sgd = SGDClassifier(loss="hinge", class_weight='balanced') 
     print(f'Nystroem (poly{n}) SVM')
     df_performance.loc[f'Nystoem (poly{n}) SVM test',:],df_performance.loc[f'Nystoem (poly{n}) SVM  train',:]=model(X_train_sc_ws, y_train_ws, X_test_sc, y_test, param_grid, sgd, nystroem)
 
