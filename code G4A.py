@@ -391,7 +391,7 @@ for n in degree:
     df_performance.loc[f'Nystoem (poly{n}) SVM test',:],df_performance.loc[f'Nystoem (poly{n}) SVM  train',:]=model(X_train_sc_ws, y_train_ws, X_test_sc, y_test, param_grid, sgd, nystroem)
 
 
-print(df_performance)
+
 
 ################################### Logistic regression ################################################
 from sklearn.linear_model import LogisticRegression
