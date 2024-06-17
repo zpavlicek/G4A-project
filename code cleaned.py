@@ -27,8 +27,7 @@ def clean_data(data):
     #adding mental health status
     df_new['Mental_health_status'] = data['MI_CAT_U'] 
 
-    #Alle Spalten woher die Antworten kommen (questionair, imputed,...) droppen (114 Spalten) 
-    #ANYDLREC gibts nicht
+    #dropping irrelevant topics (questionair, imputed,...) (114 columns) 
     df_new.drop(columns=[
         'IICIGRC', 'II2CIGRC', 'IICGRRC', 'II2CGRRC', 'IIPIPLF', 'IIPIPMN', 'IISMKLSSREC', 'IIALCRC', 'II2ALCRC', 'IIMJRC', 'II2MJRC', 'IICOCRC', 
         'II2COCRC', 'IICRKRC', 'II2CRKRC', 'IIHERRC', 'II2HERRC', 'IIHALLUCREC', 'IILSDRC', 'II2LSDRC', 'IIPCPRC', 'II2PCPRC', 'IIECSTMOREC', 'IIDAMTFXREC', 
@@ -40,12 +39,9 @@ def clean_data(data):
         'IIMJAGE', 'IIMJYFU', 'IICOCAGE', 'IICOCYFU', 'IICRKAGE', 'IICRKYFU', 'IIHERAGE', 'IIHERYFU', 'IIHALLUCAGE', 'IIHALLUCYFU', 'IILSDAGE', 'IILSDYFU', 'IIPCPAGE',
         'IIPCPYFU', 'IIECSTMOAGE', 'IIECSTMOYFU', 'IIINHALAGE', 'IIINHALYFU', 'IIMETHAMAGE', 'IIMETHAMYFU', 'IIPNRNMINIT', 'IITRQNMINIT', 'IISTMNMINIT', 'IISEDNMINIT',
         'IIPNRNMYFU', 'IIPNRNMAGE', 'IITRQNMYFU', 'IITRQNMAGE', 'IISTMNMYFU', 'IISTMNMAGE', 'IISEDNMYFU', 'IISEDNMAGE', 'CHMNDLREC', 'NDSSANSP', 'UDPYHRPNR',
-        'NDTXEFTALC', 'NDTXEFTILL', 'NDTXEFILAL', 'UADPEOP', 'UADOTSP', 'UADPLACE', 'UADCAG', 'UADFWHO', 'UADBUND', 'UADFRD'
+        'NDTXEFTALC', 'NDTXEFTILL', 'NDTXEFILAL', 'UADPEOP', 'UADOTSP', 'UADPLACE', 'UADCAG', 'UADFWHO', 'UADBUND', 'UADFRD', 'CAMHPROB2', 'RCVYMHPRB'
         ], inplace=True)
-
-
-    #Alle leere Einträge füllen die eigentlich Nein sein sollten
-    #'CADRKMATH2', 'CAMHRPROB2' gibts auch nicht
+    #making answers consistent
     df_new[[
         'CIGAVGD', 'CIGAVGM', 'ALCNUMDKPM', 'SRCPNRNM2', 'SRCSTMNM2', 'SRCSEDNM2', 'SRCFRPNRNM', 'SRCFRTRQNM', 
         'SRCFRSTMNM', 'SRCFRSEDNM', 'SRCCLFRPNR', 'SRCCLFRTRQ', 'SRCCLFRSTM', 'SRCCLFRSED', 'GRSKCIGPKD', 'GRSKMRJMON', 
@@ -54,7 +50,7 @@ def clean_data(data):
         'NDTRNTSPHR', 'NDTRNWANTD', 'NDTRNNSTOP', 'NDTRNPFULL', 'NDTRNDKWHR', 'NDTRNNBRNG', 'NDTRNJOBNG', 'NDTRNNONED', 'NDTRNHANDL',
         'NDTRNNOHLP', 'NDTRNNTIME', 'NDTRNFNDOU', 'NDTRNMIMPT', 'UADCAR', 'UADHOME', 'UADOTHM', 'UADPUBL', 'UADBAR', 'UADEVNT',
         'UADSCHL', 'UADROTH', 'UADPAID', 'UADMONY', 'UADBWHO', 'CADRKMARJ2', 'CADRKCOCN2', 'CADRKHERN2', 'CADRKHALL2', 'CADRKINHL2',
-        'CASUPROB2', 'RCVYSUBPRB', 'RCVYMHPRB', 'ALMEDYR2', 'OPMEDYR2', 'ALOPMEDYR', 'KRATFLG', 'KRATYR', 'KRATMON' 
+        'CASUPROB2', 'RCVYSUBPRB', 'RCVYMHPRB', 'ALMEDYR2', 'OPMEDYR2', 'ALOPMEDYR', 'KRATFLG', 'KRATYR', 'KRATMON', 'SRCTRQNM2' 
     ]] = df_new[[
         'CIGAVGD', 'CIGAVGM', 'ALCNUMDKPM', 'SRCPNRNM2', 'SRCSTMNM2', 'SRCSEDNM2', 'SRCFRPNRNM', 'SRCFRTRQNM', 
         'SRCFRSTMNM', 'SRCFRSEDNM', 'SRCCLFRPNR', 'SRCCLFRTRQ', 'SRCCLFRSTM', 'SRCCLFRSED', 'GRSKCIGPKD', 'GRSKMRJMON', 
@@ -63,20 +59,19 @@ def clean_data(data):
         'NDTRNTSPHR', 'NDTRNWANTD', 'NDTRNNSTOP', 'NDTRNPFULL', 'NDTRNDKWHR', 'NDTRNNBRNG', 'NDTRNJOBNG', 'NDTRNNONED', 'NDTRNHANDL',
         'NDTRNNOHLP', 'NDTRNNTIME', 'NDTRNFNDOU', 'NDTRNMIMPT', 'UADCAR', 'UADHOME', 'UADOTHM', 'UADPUBL', 'UADBAR', 'UADEVNT',
         'UADSCHL', 'UADROTH', 'UADPAID', 'UADMONY', 'UADBWHO', 'CADRKMARJ2', 'CADRKCOCN2', 'CADRKHERN2', 'CADRKHALL2', 'CADRKINHL2',
-        'CASUPROB2', 'RCVYSUBPRB', 'RCVYMHPRB', 'ALMEDYR2', 'OPMEDYR2', 'ALOPMEDYR', 'KRATFLG', 'KRATYR', 'KRATMON'
+        'CASUPROB2', 'RCVYSUBPRB', 'RCVYMHPRB', 'ALMEDYR2', 'OPMEDYR2', 'ALOPMEDYR', 'KRATFLG', 'KRATYR', 'KRATMON', 'SRCTRQNM2'
     ]].fillna(0)
     
-    #Hier ist 0 schon besetzt deswegen habe ich die Nein einträge provisorisch auf 3 geändert
     df_new['CIG1PACK']=df_new['CIG1PACK'].fillna(3)
 
-    #Die wenigen Einträge mit missing Values droppen (581 Reihen gelöscht, 55555 Reihen übrig)
+    #drop rows with missing values (581 rows deleted, 55555 rows left)
     df_new =df_new.dropna(subset=['PNRMAINRSN', 'TRQMAINRSN', 'STMMAINRSN', 'SEDMAINRSN'])
 
-    #Alle Zeilen löschen mit NA in Mental Health 
+    #drop NA in mental health
     df_cleaned = df_new.dropna(subset=['Mental_health_status'])
     print('Number of deleted rows:', len(df_new)-len(df_cleaned))
 
-    #Übersicht neues Dataset
+    #overview cleaned dataset
     print('Shape of dataset: ',df_new.shape)
     print('++++Columns Index++++')
     print(df_new.columns)
@@ -92,8 +87,7 @@ def clean_data(data):
 
     num_columns_not_zero = sum([1 for value in missing_values_per_column if value > 0])
     print("Number of columns with missing values:", num_columns_not_zero) #100 von 1756 Spalten enthalten leere Zeilen 
-    #df_cleaned=df_cleaned.dropna(axis=1) #Drop alle Spalten, in denen Werte fehlen
-    df_cleaned= df_cleaned.fillna(0)
+    df_cleaned=df_cleaned.dropna(subset=['CADRKMETH2'])
     
     print('Are there still missing values:', df_cleaned.isna().any().any()) 
     print('+++++Shape finales Dataset+++++')
@@ -204,8 +198,6 @@ feature_importance_df = pd.DataFrame({
 
 #sort
 feature_importance_df.sort_values(by='Average Mutual Information', ascending=False, inplace=True) 
-feature_importance_df = feature_importance_df.drop(feature_importance_df[feature_importance_df['Feature']=='CAMHPROB2'].index)
-feature_importance_df = feature_importance_df.drop(feature_importance_df[feature_importance_df['Feature']=='RCVYMHPRB'].index)
 feature_importance_df_top = feature_importance_df.head(20) #top 20 features
 print(feature_importance_df.head(5))
 important_features=feature_importance_df.head(100)
