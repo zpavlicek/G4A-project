@@ -448,9 +448,7 @@ param_distributions = {
     'max_leaf_nodes': [800, 900, 1000, 1100, 1200]
 }
 
-scorer=make_scorer(scoring)
 clf_RF = RandomForestClassifier(random_state=0)
-clf_RF_ws = RandomForestClassifier(random_state=0, class_weight='balanced')
 
 def search(clf_RF):
     random_search = RandomizedSearchCV(
