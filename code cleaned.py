@@ -197,7 +197,9 @@ feature_importance_df = pd.DataFrame({
 #sort
 feature_importance_df.sort_values(by='Average Mutual Information', ascending=False, inplace=True) 
 feature_importance_df_top = feature_importance_df.head(20) #top 20 features
+#Top 5 features
 print(feature_importance_df.head(5))
+
 important_features=feature_importance_df.head(100)
 X_train_selected=X_train[list(important_features['Feature'])]
 X_test_selected=X_test[list(important_features['Feature'])]
