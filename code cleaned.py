@@ -489,7 +489,7 @@ X_train_pca = pca.fit_transform(X_train_sc)
 X_test_pca = pca.transform(X_test_sc)
 
 para_grid = np.arange(1,k_max+1)
-best_knn = 0
+best_k = 0
 score = 0 
 for i in para_grid:
     knn = KNeighborsClassifier(n_neighbors=i)
@@ -498,8 +498,8 @@ for i in para_grid:
     x = scoring(y_test, y_pred)
     if x > score:
         score = x
-        best_knn = i 
-print("best k =", best_knn, "best score: ",score)
+        best_k = i 
+print("best k =", best_k, "best score: ",score)
 
 best_knn = KNeighborsClassifier(n_neighbors=best_k)
 best_knn.fit(X_train_pca, y_train)
